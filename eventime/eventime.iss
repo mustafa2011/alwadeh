@@ -2,15 +2,15 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "«·Ê«÷Õ"
-#define MyAppVersion "1.5"
-#define MyAppPublisher "Alwadeh IT Inc."
+#define MyAppVersion "1.02"
+#define MyAppPublisher "Alwadeh"
 #define MyAppURL "https://alwadehit.github.io/"
 #define MyAppExeName "eventime.exe"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
-AppId={{762EA2FC-56E5-40C6-9E18-FDCBB574AD70}
+AppId={{B3F8B8AA-3E0D-4C03-B419-0454FC583EA4}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 ;AppVerName={#MyAppName} {#MyAppVersion}
@@ -18,13 +18,13 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
-DefaultDirName=AlwadehIT\EvenTime
+DefaultDirName=C:\AlwadehIT\EvenTime
 DisableProgramGroupPage=yes
-LicenseFile=C:\Users\musta\StudioProjects\alwadeh\eventime\fatoora_license.txt
+LicenseFile=C:\Users\musta\StudioProjects\alwadeh\eventime\license.txt
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 ;PrivilegesRequired=lowest
 OutputDir=C:\Users\musta\StudioProjects\alwadeh\eventime
-OutputBaseFilename=eventime_setup
+OutputBaseFilename=eventime
 SetupIconFile=C:\Users\musta\StudioProjects\alwadeh\eventime\setup_icon.ico
 Compression=lzma
 SolidCompression=yes
