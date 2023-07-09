@@ -20,12 +20,12 @@ AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
 DefaultDirName=C:\AlwadehIT\EvenTime
 DisableProgramGroupPage=yes
-LicenseFile=C:\Users\musta\StudioProjects\alwadeh\eventime\license.txt
+LicenseFile=D:\StudioProjects\alwadeh\eventime\license.txt
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 ;PrivilegesRequired=lowest
-OutputDir=C:\Users\musta\StudioProjects\alwadeh\eventime
+OutputDir=D:\StudioProjects\alwadeh\eventime
 OutputBaseFilename=eventime
-SetupIconFile=C:\Users\musta\StudioProjects\alwadeh\eventime\setup_icon.ico
+SetupIconFile=D:\StudioProjects\alwadeh\eventime\setup_icon.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
@@ -37,8 +37,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "C:\Users\musta\StudioProjects\alwadeh\eventime\source\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\musta\StudioProjects\alwadeh\eventime\source\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "D:\StudioProjects\alwadeh\eventime\source\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\StudioProjects\alwadeh\eventime\source\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
