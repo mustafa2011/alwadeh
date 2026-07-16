@@ -1,0 +1,36 @@
+.page-title{
+    font-weight:600;
+    margin-bottom:20px;
+}
+
+.table td{
+    vertical-align:middle;
+}
+
+.table th{
+    white-space:nowrap;
+}
+
+.badge{
+    min-width:90px;
+}
+
+.card{
+    border:none;
+    border-radius:12px;
+}
+
+.table-hover tbody tr:hover{
+    background:#f8f9fa;
+}
+
+.empty-state{
+    padding:40px;
+    color:#888;
+    text-align:center;
+}
+
+.current-company{
+    font-weight:600;
+    color:#198754;
+}

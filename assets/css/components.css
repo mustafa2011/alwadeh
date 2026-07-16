@@ -1,0 +1,151 @@
+/* ==========================================================
+   Components Library
+   ALWADEH ZATCA Portal v3
+========================================================== */
+
+/* ============================
+   Section Header
+============================ */
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.section-header h5,
+.section-header h4 {
+    margin: 0;
+    font-weight: 600;
+}
+
+.section-header p {
+    margin: 0;
+    color: #6c757d;
+    font-size: .9rem;
+}
+
+/* ============================
+   Loading Button
+============================ */
+
+.btn-loading {
+    pointer-events: none;
+    opacity: .8;
+}
+
+.btn-loading .spinner-border {
+    width: 1rem;
+    height: 1rem;
+    margin-right: .5rem;
+}
+
+/* ============================
+   Empty State
+============================ */
+
+.empty-state {
+    text-align: center;
+    padding: 50px 20px;
+    color: #6c757d;
+}
+
+.empty-state i {
+    font-size: 48px;
+    margin-bottom: 15px;
+    opacity: .5;
+}
+
+.empty-state h5 {
+    font-weight: 600;
+}
+
+.empty-state p {
+    margin-bottom: 0;
+}
+
+/* ============================
+   Status Badge
+============================ */
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: .4rem .75rem;
+    border-radius: 20px;
+    font-size: .82rem;
+    font-weight: 600;
+}
+
+.status-success {
+    background: #d1e7dd;
+    color: #0f5132;
+}
+
+.status-warning {
+    background: #fff3cd;
+    color: #664d03;
+}
+
+.status-danger {
+    background: #f8d7da;
+    color: #842029;
+}
+
+.status-info {
+    background: #cff4fc;
+    color: #055160;
+}
+
+.status-secondary {
+    background: #e2e3e5;
+    color: #41464b;
+}
+
+/* ============================
+   Stat Card
+============================ */
+
+.stat-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #e9ecef;
+    transition: .2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.stat-title {
+    color: #6c757d;
+    font-size: .9rem;
+}
+
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-top: 8px;
+}
+
+/* ============================
+   Card Loader
+============================ */
+
+.component-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+}
+
+/* ============================
+   Utility
+============================ */
+
+.hidden {
+    display: none !important;
+}
