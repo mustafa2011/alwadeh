@@ -1,0 +1,20 @@
+{
+    "environment": "nonprod",
+    "vat_number": "399999999900003",
+    "crn": "1000000001",
+    "organization_name": "Alwadeh IT Company",
+    "branch_name": "Riyadh Branch",
+    "address": "RHMA3184",
+    "street": "TST 1",
+    "building_number": "1234",
+    "subdivision": "BR 1",
+    "city": "Riyadh",
+    "postal_zone": "12345",
+    "business_category": "Trading",
+    "invoice_type": "1100",
+    "common_name": "TSTZATCA-Code-Signing",
+    "serial_1": "Alwadeh",
+    "serial_2": "1.0",
+    "generated_uuid": "8262b701-df23-4e59-afce-20b7ff609769",
+    "generated_at": "2026-07-16 16:55:25"
+}
