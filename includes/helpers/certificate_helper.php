@@ -17,7 +17,7 @@
 
 function buildSupplier(array $company): array
 {
-    $company = loadCurrentCompany();
+
     return [
         'registrationName'   => $company['legal_entity']['registration_name'] ?? '',
         'taxId'              => $company['tax_scheme']['company_id_value'] ?? '',
@@ -73,8 +73,10 @@ function loadPrivateKey()
 function saveProductionCredentials(
     string $certificate,
     string $secret,
-    string $requestId
-): void {
+    string $requestId,
+    ?string $pcsid = null
+): void
+{
     $company = loadCurrentCompany();
     $pdo = Database::getConnection();
 
@@ -374,7 +376,11 @@ function updateCertificateValidity(int $companyId, string $certificate): void
     
     $validFrom = $notBefore ? new DateTimeImmutable($notBefore) : null;
     $validTo   = $notAfter ? new DateTimeImmutable($notAfter) : null;
-    
+
+    if (!$validFrom || !$validTo) {
+        throw new Exception('Invalid certificate validity.');
+    }    
+
     $stmt->execute([
         $validFrom->format('Y-m-d'),
         $validTo->format('Y-m-d'),

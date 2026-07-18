@@ -25,33 +25,33 @@
                                 <ds:Transform Algorithm="http://www.w3.org/2006/12/xml-c14n11"/>
                             </ds:Transforms>
                             <ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>
-                            <ds:DigestValue>tS1M9BAYh+aEdQfJ/8zGJHJrSFAqQqBrHyfXL/c2kvQ=</ds:DigestValue>
+                            <ds:DigestValue>BJBos5K0/Ut5PvojJaPxUFd0LsUlyDbueEqNoRuRLqY=</ds:DigestValue>
                         </ds:Reference>
                         <ds:Reference Type="http://www.w3.org/2000/09/xmldsig#SignatureProperties" URI="#xadesSignedProperties">
                             <ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>
-                            <ds:DigestValue>YTgwYjhjOTM1YzdjZGMwZTNmYmI0NGM1ODVkOTM3MGFmZTE4ZDgwYzIzNDgxZWY1Yjg1MGU3YWY1MmYzNjEzNA==</ds:DigestValue>
+                            <ds:DigestValue>NTE4OWNhMDI1ODU4ODI0MTAxZDFiOWNmNjc0ODM5MTIxZmRmZTZhZThjNzM3YzZjOTExNGU0ZDU2YmQ1YzhkYQ==</ds:DigestValue>
                         </ds:Reference>
                     </ds:SignedInfo>
-                    <ds:SignatureValue>MEUCICWTlFuBlsNJ63xTujoWndzkyENIucoP/pB5CmOXIsD2AiEA15gNEJT8Vx3SMwU984kMtFD+mSD2ZHtCaS2AvVzu6XU=</ds:SignatureValue>
+                    <ds:SignatureValue>MEQCIBrLbCiYSRTY+6FF9wMpbVsfaV3cCOzVq5LRzlvfS2GaAiBWW6iDSGaO1grCPRZAL4vOMojhugSiCFQ7Fq6M5stwsQ==</ds:SignatureValue>
                     <ds:KeyInfo>
                         <ds:X509Data>
-                            <ds:X509Certificate>MIICJDCCAcqgAwIBAgIGAZ929UlOMAoGCCqGSM49BAMCMBUxEzARBgNVBAMMCmVJbnZvaWNpbmcwHhcNMjYwNzE4MjA0MDA5WhcNMzEwNzE3MjEwMDAwWjBiMQswCQYDVQQGEwJTQTEWMBQGA1UECwwNUml5YWRoIEJyYW5jaDEbMBkGA1UECgwSQWx3YWRlaCBJVCBDb21wYW55MR4wHAYDVQQDDBVUU1RaQVRDQS1Db2RlLVNpZ25pbmcwVjAQBgcqhkjOPQIBBgUrgQQACgNCAARoYz/H3S1HWPE7Fxox/lxfBOwWT42WsbnqhUdvKiEW/QUUNPVdK2Vpxqv7bRVzc5WKt8YriSfjJclNRUaz6uXlo4G7MIG4MAwGA1UdEwEB/wQCMAAwgacGA1UdEQSBnzCBnKSBmTCBljE/MD0GA1UEBAw2MS1BbHdhZGVofDItMS4wfDMtMzgzZTliMGUtNDk0NC00YjI1LTkzYTQtOWY3OTkxZTQyMTg3MR8wHQYKCZImiZPyLGQBAQwPMzk5OTk5OTk5OTAwMDAzMQ0wCwYDVQQMDAQxMTAwMREwDwYDVQQaDAhSSE1BMzE4NDEQMA4GA1UEDwwHVHJhZGluZzAKBggqhkjOPQQDAgNIADBFAiEAt6R2vOeQKQ+2HErsJztCikZ5alp7Ns+AWEUC7Q0qWcICIHkFF6W/lNNMpRl3qxfkmfDEepD0BkNo7RCNwPkrsCvS</ds:X509Certificate>
+                            <ds:X509Certificate>MIICGzCCAcGgAwIBAgIGAZ93Cz0CMAoGCCqGSM49BAMCMBUxEzARBgNVBAMMCmVJbnZvaWNpbmcwHhcNMjYwNzE4MjEwNDA4WhcNMzEwNzE4MjEwMDAwWjBZMQswCQYDVQQGEwJTQTEWMBQGA1UECwwNUml5YWRoIEJyYW5jaDESMBAGA1UECgwJQ29tcGFueSAxMR4wHAYDVQQDDBVUU1RaQVRDQS1Db2RlLVNpZ25pbmcwVjAQBgcqhkjOPQIBBgUrgQQACgNCAAQ8JBtQSS2Qe+2oIH5+rnFdveI0/rAwd8x3v2hiymDx4P4ZPJDKan9DxqBUJRqrofwLdftHTymHM2emURvl8zmNo4G7MIG4MAwGA1UdEwEB/wQCMAAwgacGA1UdEQSBnzCBnKSBmTCBljE/MD0GA1UEBAw2MS1BbHdhZGVofDItMS4wfDMtZTIzNDg0Y2EtN2RlNy00M2M4LWJjMjctZDIyYTFjNGY0OWNlMR8wHQYKCZImiZPyLGQBAQwPMzk5OTk5OTk5OTAwMDAzMQ0wCwYDVQQMDAQxMTAwMREwDwYDVQQaDAhSSE1BMzE4NDEQMA4GA1UEDwwHVHJhZGluZzAKBggqhkjOPQQDAgNIADBFAiEA4XYvrDW4jES5cS4vwEj3rn7yfHAk90KFIjJB7WBIujUCIDmNmInlvcUUeO8ItrYrkrJMqDgKZkizabM8nVSBqQTn</ds:X509Certificate>
                         </ds:X509Data>
                     </ds:KeyInfo>
                     <ds:Object>
                         <xades:QualifyingProperties xmlns:xades="http://uri.etsi.org/01903/v1.3.2#" Target="signature">
                             <xades:SignedProperties Id="xadesSignedProperties">
                                 <xades:SignedSignatureProperties>
-                                    <xades:SigningTime>2026-07-18T23:40:17</xades:SigningTime>
+                                    <xades:SigningTime>2026-07-19T00:04:16</xades:SigningTime>
                                     <xades:SigningCertificate>
                                         <xades:Cert>
                                             <xades:CertDigest>
                                                 <ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>
-                                                <ds:DigestValue>YTExYzgyNDc0MWViZDU3MThmMmY5MTNjNGVmNGExYjNjZTVlOWJiN2Q0OGE5MzYyYjllNWMyOThhMjMxNDJmMA==</ds:DigestValue>
+                                                <ds:DigestValue>NjFkZTFkMjRjNWY0YmUxMWM1Y2Q1ZGYwYjFiNmUyNDQyN2Q0MTYzZWQ2ZWE3ZDc1YzhkMGJkM2Y0NDNjOWYwNA==</ds:DigestValue>
                                             </xades:CertDigest>
                                             <xades:IssuerSerial>
                                                 <ds:X509IssuerName>CN=eInvoicing</ds:X509IssuerName>
-                                                <ds:X509SerialNumber>1784407214414</ds:X509SerialNumber>
+                                                <ds:X509SerialNumber>1784408653058</ds:X509SerialNumber>
                                             </xades:IssuerSerial>
                                         </xades:Cert>
                                     </xades:SigningCertificate>
@@ -66,21 +66,21 @@
 </ext:UBLExtension>
 </ext:UBLExtensions>
     <cbc:ProfileID>reporting:1.0</cbc:ProfileID>
-    <cbc:ID>STD00002</cbc:ID>
-    <cbc:UUID>496fd604-5055-4e95-a8ba-fde1bbc3854f</cbc:UUID>
-    <cbc:IssueDate>2026-07-17</cbc:IssueDate>
-    <cbc:IssueTime>20:40:16Z</cbc:IssueTime>
-    <cbc:InvoiceTypeCode name="0100000">381</cbc:InvoiceTypeCode>
+    <cbc:ID>SIM00005</cbc:ID>
+    <cbc:UUID>8bdf35e5-4853-4a3f-b496-28e6dea6067d</cbc:UUID>
+    <cbc:IssueDate>2026-07-18</cbc:IssueDate>
+    <cbc:IssueTime>21:04:14Z</cbc:IssueTime>
+    <cbc:InvoiceTypeCode name="0200000">381</cbc:InvoiceTypeCode>
     <cbc:DocumentCurrencyCode>SAR</cbc:DocumentCurrencyCode>
     <cbc:TaxCurrencyCode>SAR</cbc:TaxCurrencyCode>
     <cac:BillingReference>
         <cac:InvoiceDocumentReference>
-            <cbc:ID>STD00002</cbc:ID>
+            <cbc:ID>SIM00005</cbc:ID>
         </cac:InvoiceDocumentReference>
     </cac:BillingReference>
     <cac:AdditionalDocumentReference>
         <cbc:ID>ICV</cbc:ID>
-        <cbc:UUID>2</cbc:UUID>
+        <cbc:UUID>5</cbc:UUID>
     </cac:AdditionalDocumentReference>
     <cac:AdditionalDocumentReference>
         <cbc:ID>PIH</cbc:ID>
@@ -91,7 +91,7 @@
     <cac:AdditionalDocumentReference>
         <cbc:ID>QR</cbc:ID>
         <cac:Attachment>
-            <cbc:EmbeddedDocumentBinaryObject mimeCode="text/plain">ARJBbHdhZGVoIElUIENvbXBhbnkCDzM5OTk5OTk5OTkwMDAwMwMUMjAyNi0wNy0xN1QyMDo0MDoxNloEBTExLjUwBQQxLjUwBix0UzFNOUJBWWgrYUVkUWZKLzh6R0pISnJTRkFxUXFCckh5ZlhML2Mya3ZRPQdgTUVVQ0lDV1RsRnVCbHNOSjYzeFR1am9XbmR6a3lFTkl1Y29QL3BCNUNtT1hJc0QyQWlFQTE1Z05FSlQ4VngzU013VTk4NGtNdEZEK21TRDJaSHRDYVMyQXZWenU2WFU9CFgwVjAQBgcqhkjOPQIBBgUrgQQACgNCAARoYz/H3S1HWPE7Fxox/lxfBOwWT42WsbnqhUdvKiEW/QUUNPVdK2Vpxqv7bRVzc5WKt8YriSfjJclNRUaz6uXl</cbc:EmbeddedDocumentBinaryObject>
+            <cbc:EmbeddedDocumentBinaryObject mimeCode="text/plain">AQlDb21wYW55IDECDzM5OTk5OTk5OTkwMDAwMwMUMjAyNi0wNy0xOFQyMTowNDoxNFoEBTExLjUwBQQxLjUwBixCSkJvczVLMC9VdDVQdm9qSmFQeFVGZDBMc1VseURidWVFcU5vUnVSTHFZPQdgTUVRQ0lCckxiQ2lZU1JUWSs2RkY5d01wYlZzZmFWM2NDT3pWcTVMUnpsdmZTMkdhQWlCV1c2aURTR2FPMWdyQ1BSWkFMNHZPTW9qaHVnU2lDRlE3RnE2TTVzdHdzUT09CFgwVjAQBgcqhkjOPQIBBgUrgQQACgNCAAQ8JBtQSS2Qe+2oIH5+rnFdveI0/rAwd8x3v2hiymDx4P4ZPJDKan9DxqBUJRqrofwLdftHTymHM2emURvl8zmNCUcwRQIhAOF2L6w1uIxEuXEuL8BI965+8nxwJPdChSIyQe1gSLo1AiA5jZiJ5b3FFHjvCLa2K5KyTKg4CmZIs2mzPJ1UgakE5w==</cbc:EmbeddedDocumentBinaryObject>
         </cac:Attachment>
     </cac:AdditionalDocumentReference>
     <cac:Signature>
@@ -101,7 +101,7 @@
     <cac:AccountingSupplierParty>
         <cac:Party>
             <cac:PartyIdentification>
-                <cbc:ID schemeID="CRN">1000000001</cbc:ID>
+                <cbc:ID schemeID="CRN">1200000001</cbc:ID>
             </cac:PartyIdentification>
             <cac:PostalAddress>
                 <cbc:StreetName>TST 1</cbc:StreetName>
@@ -120,36 +120,13 @@
                 </cac:TaxScheme>
             </cac:PartyTaxScheme>
             <cac:PartyLegalEntity>
-                <cbc:RegistrationName>Alwadeh IT Company</cbc:RegistrationName>
+                <cbc:RegistrationName>Company 1</cbc:RegistrationName>
             </cac:PartyLegalEntity>
         </cac:Party>
     </cac:AccountingSupplierParty>
     <cac:AccountingCustomerParty>
-        <cac:Party>
-            <cac:PostalAddress>
-                <cbc:StreetName>صلاح الدين</cbc:StreetName>
-                <cbc:BuildingNumber>1111</cbc:BuildingNumber>
-                <cbc:CitySubdivisionName>Al-Murooj</cbc:CitySubdivisionName>
-                <cbc:CityName>Riyadh</cbc:CityName>
-                <cbc:PostalZone>12222</cbc:PostalZone>
-                <cac:Country>
-                    <cbc:IdentificationCode>SA</cbc:IdentificationCode>
-                </cac:Country>
-            </cac:PostalAddress>
-            <cac:PartyTaxScheme>
-                <cbc:CompanyID>399999999800003</cbc:CompanyID>
-                <cac:TaxScheme>
-                    <cbc:ID>VAT</cbc:ID>
-                </cac:TaxScheme>
-            </cac:PartyTaxScheme>
-            <cac:PartyLegalEntity>
-                <cbc:RegistrationName>شركة نماذج فاتورة المحدودة</cbc:RegistrationName>
-            </cac:PartyLegalEntity>
-        </cac:Party>
+        <cac:Party/>
     </cac:AccountingCustomerParty>
-    <cac:Delivery>
-        <cbc:ActualDeliveryDate>2026-07-18</cbc:ActualDeliveryDate>
-    </cac:Delivery>
     <cac:PaymentMeans>
         <cbc:PaymentMeansCode>10</cbc:PaymentMeansCode>
         <cbc:InstructionNote>CANCELLATION_OR_TERMINATION</cbc:InstructionNote>

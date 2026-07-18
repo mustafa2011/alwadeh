@@ -2,28 +2,7 @@
 /**
  * File Helper Functions
  *
- * Handles all filesystem operations used by the project.
- *
- * Responsibilities:
- * - Reading JSON files
- * - Saving JSON files
- * - Output directories
- * - Certificate file locations
- * - Storage paths
  */
-
-if (!function_exists('getCertificateSettingsFile')) {
-
-    /**
-     * Get certificate settings file path.
-     *
-     * @return string
-     */
-    function getCertificateSettingsFile(): string
-    {
-        return companyFile('certificate_settings.json');
-    }
-}
 
 if (!function_exists('getCSRFile')) {
 
@@ -48,19 +27,6 @@ if (!function_exists('getPrivateKeyFile')) {
     function getPrivateKeyFile(): string
     {
         return companyFile('private.pem');
-    }
-}
-
-if (!function_exists('getComplianceCertificateFile')) {
-
-    /**
-     * Get compliance certificate JSON file path.
-     *
-     * @return string
-     */
-    function getComplianceCertificateFile(): string
-    {
-        return companyFile('ZATCA_certificate_data.json');
     }
 }
 
@@ -113,59 +79,6 @@ if (!function_exists('getBackupDirectory')) {
     function getBackupDirectory(): string
     {
         return backupPath();
-    }
-}
- 
-if (!function_exists('loadJsonFile')) {
-
-    /**
-     * Load JSON file.
-     *
-     * @param string $filePath
-     * @return array
-     * @throws Exception
-     */
-    function loadJsonFile($filePath)
-    {
-        if (!file_exists($filePath)) {
-            throw new Exception("JSON file not found: {$filePath}");
-        }
-
-        $data = json_decode(file_get_contents($filePath), true);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new Exception("Invalid JSON file: {$filePath}");
-        }
-
-        return $data;
-    }
-}
-
-if (!function_exists('saveJsonFile')) {
-
-    /**
-     * Save data as JSON file.
-     *
-     * @param string $filePath
-     * @param array  $data
-     * @return void
-     * @throws Exception
-     */
-    function saveJsonFile($filePath, array $data)
-    {
-        $result = file_put_contents(
-            $filePath,
-            json_encode(
-                $data,
-                JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE
-            )
-        );
-
-        if ($result === false) {
-            throw new Exception(
-                "Unable to write JSON file: {$filePath}"
-            );
-        }
     }
 }
 
@@ -229,19 +142,6 @@ if (!function_exists('getComplianceOutputDirectory')) {
     }
 }
 
-if (!function_exists('getProductionCredentialsFile')) {
-
-    /**
-     * Get production credentials output file.
-     *
-     * @return string
-     */
-    function getProductionCredentialsFile(): string
-    {
-        return getOutputFile('production_credentials.json');
-    }
-}
-
 if (!function_exists('getCompliancePrivateKeyPath')) {
 
     /**
@@ -254,18 +154,3 @@ if (!function_exists('getCompliancePrivateKeyPath')) {
         return getOutputFile('private.pem');
     }
 }
-
-if (!function_exists('getComplianceCertificateFile')) {
-
-    /**
-     * Get compliance credentials file.
-     *
-     * @return string
-     */
-    function getComplianceCertificateFile(): string
-    {
-        return getOutputFile('ZATCA_certificate_data.json');
-    }
-}
-
-

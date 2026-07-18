@@ -14,16 +14,21 @@
         </ext:UBLExtension>
     </ext:UBLExtensions>
     <cbc:ProfileID>reporting:1.0</cbc:ProfileID>
-    <cbc:ID>STD00001</cbc:ID>
-    <cbc:UUID>50090666-0131-4833-b448-f90bf9eb4e0d</cbc:UUID>
-    <cbc:IssueDate>2026-07-17</cbc:IssueDate>
-    <cbc:IssueTime>20:40:16Z</cbc:IssueTime>
-    <cbc:InvoiceTypeCode name="0100000">388</cbc:InvoiceTypeCode>
+    <cbc:ID>STD00003</cbc:ID>
+    <cbc:UUID>0f818906-02e6-4b7d-9f5e-51227013facb</cbc:UUID>
+    <cbc:IssueDate>2026-07-18</cbc:IssueDate>
+    <cbc:IssueTime>21:04:14Z</cbc:IssueTime>
+    <cbc:InvoiceTypeCode name="0100000">383</cbc:InvoiceTypeCode>
     <cbc:DocumentCurrencyCode>SAR</cbc:DocumentCurrencyCode>
     <cbc:TaxCurrencyCode>SAR</cbc:TaxCurrencyCode>
+    <cac:BillingReference>
+        <cac:InvoiceDocumentReference>
+            <cbc:ID>STD00003</cbc:ID>
+        </cac:InvoiceDocumentReference>
+    </cac:BillingReference>
     <cac:AdditionalDocumentReference>
         <cbc:ID>ICV</cbc:ID>
-        <cbc:UUID>1</cbc:UUID>
+        <cbc:UUID>3</cbc:UUID>
     </cac:AdditionalDocumentReference>
     <cac:AdditionalDocumentReference>
         <cbc:ID>PIH</cbc:ID>
@@ -41,7 +46,7 @@
     <cac:AccountingSupplierParty>
         <cac:Party>
             <cac:PartyIdentification>
-                <cbc:ID schemeID="CRN">1000000001</cbc:ID>
+                <cbc:ID schemeID="CRN">1200000001</cbc:ID>
             </cac:PartyIdentification>
             <cac:PostalAddress>
                 <cbc:StreetName>TST 1</cbc:StreetName>
@@ -60,7 +65,7 @@
                 </cac:TaxScheme>
             </cac:PartyTaxScheme>
             <cac:PartyLegalEntity>
-                <cbc:RegistrationName>Alwadeh IT Company</cbc:RegistrationName>
+                <cbc:RegistrationName>Company 1</cbc:RegistrationName>
             </cac:PartyLegalEntity>
         </cac:Party>
     </cac:AccountingSupplierParty>
@@ -88,10 +93,11 @@
         </cac:Party>
     </cac:AccountingCustomerParty>
     <cac:Delivery>
-        <cbc:ActualDeliveryDate>2026-07-18</cbc:ActualDeliveryDate>
+        <cbc:ActualDeliveryDate>2026-07-19</cbc:ActualDeliveryDate>
     </cac:Delivery>
     <cac:PaymentMeans>
         <cbc:PaymentMeansCode>10</cbc:PaymentMeansCode>
+        <cbc:InstructionNote>CANCELLATION_OR_TERMINATION</cbc:InstructionNote>
     </cac:PaymentMeans>
     <cac:TaxTotal>
         <cbc:TaxAmount currencyID="SAR">1.50</cbc:TaxAmount>

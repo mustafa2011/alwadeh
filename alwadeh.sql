@@ -1,31 +1,6 @@
--- phpMyAdmin SQL Dump
--- version 5.2.3
--- https://www.phpmyadmin.net/
---
--- Host: localhost:3306
--- Generation Time: Jul 17, 2026 at 11:38 PM
--- Server version: 8.4.3
--- PHP Version: 8.1.32
-
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
-
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
-
---
--- Database: `alwadeh`
---
-
--- --------------------------------------------------------
-
---
--- Table structure for table `companies`
---
 
 CREATE TABLE `companies` (
   `id` bigint UNSIGNED NOT NULL,
@@ -46,12 +21,6 @@ CREATE TABLE `companies` (
   `production_certificate` tinyint(1) DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `company_address`
---
-
 CREATE TABLE `company_address` (
   `id` bigint UNSIGNED NOT NULL,
   `company_id` bigint UNSIGNED NOT NULL,
@@ -66,12 +35,6 @@ CREATE TABLE `company_address` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `company_bank_account`
---
-
 CREATE TABLE `company_bank_account` (
   `id` bigint UNSIGNED NOT NULL,
   `company_id` bigint UNSIGNED NOT NULL,
@@ -83,12 +46,6 @@ CREATE TABLE `company_bank_account` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `company_certificates`
---
 
 CREATE TABLE `company_certificates` (
   `id` bigint UNSIGNED NOT NULL,
@@ -102,12 +59,6 @@ CREATE TABLE `company_certificates` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `company_contact`
---
-
 CREATE TABLE `company_contact` (
   `id` bigint UNSIGNED NOT NULL,
   `company_id` bigint UNSIGNED NOT NULL,
@@ -118,12 +69,6 @@ CREATE TABLE `company_contact` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `company_legal_entity`
---
 
 CREATE TABLE `company_legal_entity` (
   `id` bigint UNSIGNED NOT NULL,
@@ -137,12 +82,6 @@ CREATE TABLE `company_legal_entity` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `company_party`
---
-
 CREATE TABLE `company_party` (
   `id` bigint UNSIGNED NOT NULL,
   `company_id` bigint UNSIGNED NOT NULL,
@@ -155,12 +94,6 @@ CREATE TABLE `company_party` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `company_sequences`
---
-
 CREATE TABLE `company_sequences` (
   `id` bigint UNSIGNED NOT NULL,
   `company_id` bigint UNSIGNED NOT NULL,
@@ -169,12 +102,6 @@ CREATE TABLE `company_sequences` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `company_storage_settings`
---
 
 CREATE TABLE `company_storage_settings` (
   `id` bigint UNSIGNED NOT NULL,
@@ -189,12 +116,6 @@ CREATE TABLE `company_storage_settings` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `company_tax_scheme`
---
-
 CREATE TABLE `company_tax_scheme` (
   `id` bigint UNSIGNED NOT NULL,
   `company_id` bigint UNSIGNED NOT NULL,
@@ -206,80 +127,53 @@ CREATE TABLE `company_tax_scheme` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `company_zatca_certificates`
---
-
-CREATE TABLE `company_zatca_certificates` (
-  `id` bigint UNSIGNED NOT NULL,
-  `company_id` bigint UNSIGNED NOT NULL,
-  `certificate_type` enum('compliance','production') NOT NULL,
-  `certificate_name` varchar(255) DEFAULT NULL,
-  `certificate_serial` varchar(255) DEFAULT NULL,
-  `private_key_content` longtext,
-  `csr_content` longtext,
-  `secret_key` varchar(255) DEFAULT NULL,
-  `environment` enum('sandbox','simulation','production') DEFAULT 'sandbox',
-  `status` enum('generated','submitted','approved','expired','revoked') DEFAULT 'generated',
-  `valid_from` date DEFAULT NULL,
-  `valid_to` date DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `company_zatca_credentials`
---
-
-CREATE TABLE `company_zatca_credentials` (
-  `id` bigint UNSIGNED NOT NULL,
-  `company_id` bigint UNSIGNED NOT NULL,
-  `certificate_id` bigint UNSIGNED DEFAULT NULL,
-  `request_id` varchar(255) DEFAULT NULL,
-  `binary_security_token` text,
-  `secret` varchar(255) DEFAULT NULL,
-  `access_token` text,
-  `environment` enum('sandbox','simulation','production') DEFAULT 'sandbox',
-  `expires_at` datetime DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `company_zatca_settings`
---
-
 CREATE TABLE `company_zatca_settings` (
   `id` bigint UNSIGNED NOT NULL,
   `company_id` bigint UNSIGNED NOT NULL,
-  `environment` enum('simulation','compliance','production') DEFAULT 'simulation',
+  `environment` enum('nonprod','simulation','production') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT 'nonprod',
+  `status` enum('generated','submitted','approved','expired','revoked') DEFAULT 'generated',
+  `valid_from` date DEFAULT NULL,
+  `valid_to` date DEFAULT NULL,
+  `expires_at` datetime DEFAULT NULL,
   `certificate_path` varchar(500) DEFAULT NULL,
   `private_key_path` varchar(500) DEFAULT NULL,
-  `certificate_serial` varchar(255) DEFAULT NULL,
-  `zatca_client_id` varchar(255) DEFAULT NULL,
-  `zatca_secret` varchar(255) DEFAULT NULL,
-  `compliance_request_id` varchar(255) DEFAULT NULL,
-  `production_csid` varchar(255) DEFAULT NULL,
+  `private_key_content` longtext,
+  `csr_content` longtext,
+  `compliance_certificate_content` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci,
+  `compliance_secret` varchar(255) DEFAULT NULL,
+  `production_certificate_content` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci,
   `production_secret` varchar(255) DEFAULT NULL,
+  `serial_number` varchar(255) DEFAULT NULL,
+  `certificate_name` varchar(255) DEFAULT NULL,
+  `compliance_csid` longtext,
+  `compliance_request_id` varchar(255) DEFAULT NULL,
+  `request_id` varchar(255) DEFAULT NULL,
+  `access_token` longtext,
+  `production_pcsid` longtext,
   `last_invoice_hash` text,
   `last_invoice_uuid` char(36) DEFAULT NULL,
   `last_icv` bigint DEFAULT '0',
   `last_pih` text,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `vat_number` varchar(15) DEFAULT NULL,
+  `crn` varchar(20) DEFAULT NULL,
+  `organization_name` varchar(255) DEFAULT NULL,
+  `branch_name` varchar(255) DEFAULT NULL,
+  `address` text,
+  `street` varchar(255) DEFAULT NULL,
+  `building_number` varchar(50) DEFAULT NULL,
+  `subdivision` varchar(255) DEFAULT NULL,
+  `city` varchar(100) DEFAULT NULL,
+  `postal_zone` varchar(20) DEFAULT NULL,
+  `business_category` varchar(255) DEFAULT NULL,
+  `invoice_type` varchar(50) DEFAULT NULL,
+  `common_name` varchar(255) DEFAULT NULL,
+  `serial_1` varchar(255) DEFAULT NULL,
+  `serial_2` varchar(255) DEFAULT NULL,
+  `generated_uuid` char(36) DEFAULT NULL,
+  `generated_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `customers`
---
 
 CREATE TABLE `customers` (
   `id` bigint UNSIGNED NOT NULL,
@@ -299,12 +193,6 @@ CREATE TABLE `customers` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `customer_address`
---
-
 CREATE TABLE `customer_address` (
   `id` bigint UNSIGNED NOT NULL,
   `customer_id` bigint UNSIGNED NOT NULL,
@@ -321,12 +209,6 @@ CREATE TABLE `customer_address` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `customer_bank_account`
---
-
 CREATE TABLE `customer_bank_account` (
   `id` bigint UNSIGNED NOT NULL,
   `customer_id` bigint UNSIGNED NOT NULL,
@@ -339,12 +221,6 @@ CREATE TABLE `customer_bank_account` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `customer_contact`
---
-
 CREATE TABLE `customer_contact` (
   `id` bigint UNSIGNED NOT NULL,
   `customer_id` bigint UNSIGNED NOT NULL,
@@ -355,12 +231,6 @@ CREATE TABLE `customer_contact` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `customer_legal_entity`
---
 
 CREATE TABLE `customer_legal_entity` (
   `id` bigint UNSIGNED NOT NULL,
@@ -374,12 +244,6 @@ CREATE TABLE `customer_legal_entity` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `customer_party`
---
-
 CREATE TABLE `customer_party` (
   `id` bigint UNSIGNED NOT NULL,
   `customer_id` bigint UNSIGNED NOT NULL,
@@ -392,12 +256,6 @@ CREATE TABLE `customer_party` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `customer_tax_scheme`
---
-
 CREATE TABLE `customer_tax_scheme` (
   `id` bigint UNSIGNED NOT NULL,
   `customer_id` bigint UNSIGNED NOT NULL,
@@ -408,12 +266,6 @@ CREATE TABLE `customer_tax_scheme` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `invoices`
---
 
 CREATE TABLE `invoices` (
   `id` bigint UNSIGNED NOT NULL,
@@ -445,12 +297,6 @@ CREATE TABLE `invoices` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `invoice_allowances`
---
-
 CREATE TABLE `invoice_allowances` (
   `id` bigint UNSIGNED NOT NULL,
   `invoice_id` bigint UNSIGNED NOT NULL,
@@ -466,12 +312,6 @@ CREATE TABLE `invoice_allowances` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `invoice_attachments`
---
-
 CREATE TABLE `invoice_attachments` (
   `id` bigint UNSIGNED NOT NULL,
   `invoice_id` bigint UNSIGNED NOT NULL,
@@ -481,12 +321,6 @@ CREATE TABLE `invoice_attachments` (
   `file_size` bigint DEFAULT '0',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `invoice_customer_party`
---
 
 CREATE TABLE `invoice_customer_party` (
   `id` bigint UNSIGNED NOT NULL,
@@ -500,12 +334,6 @@ CREATE TABLE `invoice_customer_party` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `invoice_delivery`
---
-
 CREATE TABLE `invoice_delivery` (
   `id` bigint UNSIGNED NOT NULL,
   `invoice_id` bigint UNSIGNED NOT NULL,
@@ -515,12 +343,6 @@ CREATE TABLE `invoice_delivery` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `invoice_documents`
---
-
 CREATE TABLE `invoice_documents` (
   `id` bigint UNSIGNED NOT NULL,
   `invoice_id` bigint UNSIGNED NOT NULL,
@@ -528,12 +350,6 @@ CREATE TABLE `invoice_documents` (
   `document_type` enum('original','signed','submitted','cleared','reported','archive') COLLATE utf8mb4_unicode_ci DEFAULT 'original',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `invoice_events`
---
 
 CREATE TABLE `invoice_events` (
   `id` bigint UNSIGNED NOT NULL,
@@ -543,12 +359,6 @@ CREATE TABLE `invoice_events` (
   `created_by` bigint UNSIGNED DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `invoice_lines`
---
 
 CREATE TABLE `invoice_lines` (
   `id` bigint UNSIGNED NOT NULL,
@@ -569,12 +379,6 @@ CREATE TABLE `invoice_lines` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `invoice_line_taxes`
---
-
 CREATE TABLE `invoice_line_taxes` (
   `id` bigint UNSIGNED NOT NULL,
   `invoice_line_id` bigint UNSIGNED NOT NULL,
@@ -587,12 +391,6 @@ CREATE TABLE `invoice_line_taxes` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `invoice_notes`
---
-
 CREATE TABLE `invoice_notes` (
   `id` bigint UNSIGNED NOT NULL,
   `invoice_id` bigint UNSIGNED NOT NULL,
@@ -600,12 +398,6 @@ CREATE TABLE `invoice_notes` (
   `language_code` varchar(10) DEFAULT 'ar',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `invoice_party_additional_identification`
---
 
 CREATE TABLE `invoice_party_additional_identification` (
   `id` bigint UNSIGNED NOT NULL,
@@ -616,12 +408,6 @@ CREATE TABLE `invoice_party_additional_identification` (
   `identification_scheme` varchar(50) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `invoice_party_address`
---
 
 CREATE TABLE `invoice_party_address` (
   `id` bigint UNSIGNED NOT NULL,
@@ -639,12 +425,6 @@ CREATE TABLE `invoice_party_address` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `invoice_party_contact`
---
-
 CREATE TABLE `invoice_party_contact` (
   `id` bigint UNSIGNED NOT NULL,
   `invoice_id` bigint UNSIGNED NOT NULL,
@@ -656,12 +436,6 @@ CREATE TABLE `invoice_party_contact` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `invoice_party_legal_entity`
---
-
 CREATE TABLE `invoice_party_legal_entity` (
   `id` bigint UNSIGNED NOT NULL,
   `invoice_id` bigint UNSIGNED NOT NULL,
@@ -672,12 +446,6 @@ CREATE TABLE `invoice_party_legal_entity` (
   `company_id_scheme` varchar(50) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `invoice_party_payment_account`
---
 
 CREATE TABLE `invoice_party_payment_account` (
   `id` bigint UNSIGNED NOT NULL,
@@ -691,12 +459,6 @@ CREATE TABLE `invoice_party_payment_account` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `invoice_party_tax_scheme`
---
-
 CREATE TABLE `invoice_party_tax_scheme` (
   `id` bigint UNSIGNED NOT NULL,
   `invoice_id` bigint UNSIGNED NOT NULL,
@@ -706,12 +468,6 @@ CREATE TABLE `invoice_party_tax_scheme` (
   `vat_number` varchar(50) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `invoice_payment_means`
---
 
 CREATE TABLE `invoice_payment_means` (
   `id` bigint UNSIGNED NOT NULL,
@@ -726,12 +482,6 @@ CREATE TABLE `invoice_payment_means` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `invoice_references`
---
-
 CREATE TABLE `invoice_references` (
   `id` bigint UNSIGNED NOT NULL,
   `invoice_id` bigint UNSIGNED NOT NULL,
@@ -741,12 +491,6 @@ CREATE TABLE `invoice_references` (
   `reference_date` date DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `invoice_supplier_party`
---
 
 CREATE TABLE `invoice_supplier_party` (
   `id` bigint UNSIGNED NOT NULL,
@@ -759,12 +503,6 @@ CREATE TABLE `invoice_supplier_party` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `invoice_tax_totals`
---
-
 CREATE TABLE `invoice_tax_totals` (
   `id` bigint UNSIGNED NOT NULL,
   `invoice_id` bigint UNSIGNED NOT NULL,
@@ -776,12 +514,6 @@ CREATE TABLE `invoice_tax_totals` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `invoice_totals`
---
 
 CREATE TABLE `invoice_totals` (
   `id` bigint UNSIGNED NOT NULL,
@@ -797,12 +529,6 @@ CREATE TABLE `invoice_totals` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `invoice_zatca`
---
 
 CREATE TABLE `invoice_zatca` (
   `id` bigint UNSIGNED NOT NULL,
@@ -823,12 +549,6 @@ CREATE TABLE `invoice_zatca` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `items`
---
-
 CREATE TABLE `items` (
   `id` bigint UNSIGNED NOT NULL,
   `company_id` bigint UNSIGNED NOT NULL,
@@ -848,12 +568,6 @@ CREATE TABLE `items` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `item_categories`
---
-
 CREATE TABLE `item_categories` (
   `id` bigint UNSIGNED NOT NULL,
   `company_id` bigint UNSIGNED NOT NULL,
@@ -864,12 +578,6 @@ CREATE TABLE `item_categories` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `item_images`
---
-
 CREATE TABLE `item_images` (
   `id` bigint UNSIGNED NOT NULL,
   `item_id` bigint UNSIGNED NOT NULL,
@@ -879,12 +587,6 @@ CREATE TABLE `item_images` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `item_inventory`
---
 
 CREATE TABLE `item_inventory` (
   `id` bigint UNSIGNED NOT NULL,
@@ -897,12 +599,6 @@ CREATE TABLE `item_inventory` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `item_prices`
---
 
 CREATE TABLE `item_prices` (
   `id` bigint UNSIGNED NOT NULL,
@@ -917,12 +613,6 @@ CREATE TABLE `item_prices` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `item_tax_categories`
---
-
 CREATE TABLE `item_tax_categories` (
   `id` bigint UNSIGNED NOT NULL,
   `company_id` bigint UNSIGNED NOT NULL,
@@ -934,12 +624,6 @@ CREATE TABLE `item_tax_categories` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `item_units`
---
-
 CREATE TABLE `item_units` (
   `id` bigint UNSIGNED NOT NULL,
   `company_id` bigint UNSIGNED NOT NULL,
@@ -949,12 +633,6 @@ CREATE TABLE `item_units` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `item_zatca_data`
---
 
 CREATE TABLE `item_zatca_data` (
   `id` bigint UNSIGNED NOT NULL,
@@ -966,12 +644,6 @@ CREATE TABLE `item_zatca_data` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `storage_files`
---
 
 CREATE TABLE `storage_files` (
   `id` bigint UNSIGNED NOT NULL,
@@ -992,12 +664,6 @@ CREATE TABLE `storage_files` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `storage_logs`
---
-
 CREATE TABLE `storage_logs` (
   `id` bigint UNSIGNED NOT NULL,
   `storage_file_id` bigint UNSIGNED DEFAULT NULL,
@@ -1007,23 +673,11 @@ CREATE TABLE `storage_logs` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `system_settings`
---
-
 CREATE TABLE `system_settings` (
   `id` bigint UNSIGNED NOT NULL,
   `setting_key` varchar(100) DEFAULT NULL,
   `setting_value` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `users`
---
 
 CREATE TABLE `users` (
   `id` bigint UNSIGNED NOT NULL,
@@ -1038,21 +692,13 @@ CREATE TABLE `users` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- --------------------------------------------------------
-
---
--- Stand-in structure for view `v_company_profile`
--- (See below for the actual view)
---
+CREATE TABLE `user_current_company` (
+  `user_id` bigint UNSIGNED NOT NULL,
+  `company_id` bigint UNSIGNED NOT NULL,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 CREATE TABLE `v_company_profile` (
 );
-
--- --------------------------------------------------------
-
---
--- Stand-in structure for view `v_customer_profile`
--- (See below for the actual view)
---
 CREATE TABLE `v_customer_profile` (
 `building_number` varchar(50)
 ,`city_name` varchar(100)
@@ -1068,13 +714,6 @@ CREATE TABLE `v_customer_profile` (
 ,`telephone` varchar(50)
 ,`vat_number` varchar(15)
 );
-
--- --------------------------------------------------------
-
---
--- Stand-in structure for view `v_invoice_header`
--- (See below for the actual view)
---
 CREATE TABLE `v_invoice_header` (
 `company_id` bigint unsigned
 ,`currency_code` char(3)
@@ -1092,13 +731,6 @@ CREATE TABLE `v_invoice_header` (
 ,`tax_exclusive_amount` decimal(15,2)
 ,`tax_inclusive_amount` decimal(15,2)
 );
-
--- --------------------------------------------------------
-
---
--- Stand-in structure for view `v_invoice_lines`
--- (See below for the actual view)
---
 CREATE TABLE `v_invoice_lines` (
 `invoice_id` bigint unsigned
 ,`invoice_line_id` bigint unsigned
@@ -1113,39 +745,18 @@ CREATE TABLE `v_invoice_lines` (
 ,`tax_percent` decimal(5,2)
 ,`unit_code` varchar(20)
 );
-
--- --------------------------------------------------------
-
---
--- Stand-in structure for view `v_invoice_payment`
--- (See below for the actual view)
---
 CREATE TABLE `v_invoice_payment` (
 `instruction_note` text
 ,`invoice_id` bigint unsigned
 ,`payment_due_date` date
 ,`payment_means_code` varchar(20)
 );
-
--- --------------------------------------------------------
-
---
--- Stand-in structure for view `v_invoice_status_history`
--- (See below for the actual view)
---
 CREATE TABLE `v_invoice_status_history` (
 `created_at` timestamp
 ,`event_message` text
 ,`event_type` varchar(100)
 ,`invoice_id` bigint unsigned
 );
-
--- --------------------------------------------------------
-
---
--- Stand-in structure for view `v_invoice_zatca_documents`
--- (See below for the actual view)
---
 CREATE TABLE `v_invoice_zatca_documents` (
 `created_at` timestamp
 ,`file_path` varchar(500)
@@ -1154,12 +765,6 @@ CREATE TABLE `v_invoice_zatca_documents` (
 ,`invoice_number` varchar(100)
 ,`storage_id` bigint unsigned
 );
-
--- --------------------------------------------------------
-
---
--- Table structure for table `zatca_api_logs`
---
 
 CREATE TABLE `zatca_api_logs` (
   `id` bigint UNSIGNED NOT NULL,
@@ -1175,12 +780,6 @@ CREATE TABLE `zatca_api_logs` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `zatca_errors`
---
-
 CREATE TABLE `zatca_errors` (
   `id` bigint UNSIGNED NOT NULL,
   `invoice_id` bigint UNSIGNED DEFAULT NULL,
@@ -1191,116 +790,62 @@ CREATE TABLE `zatca_errors` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
---
--- Indexes for dumped tables
---
 
---
--- Indexes for table `companies`
---
 ALTER TABLE `companies`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_companies_user_id` (`user_id`),
   ADD KEY `idx_companies_vat_number` (`vat_number`),
   ADD KEY `idx_companies_status` (`status`);
 
---
--- Indexes for table `company_address`
---
 ALTER TABLE `company_address`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `uq_company_address_company` (`company_id`),
   ADD KEY `idx_company_address_company` (`company_id`);
 
---
--- Indexes for table `company_bank_account`
---
 ALTER TABLE `company_bank_account`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_company_bank_company` (`company_id`),
   ADD KEY `idx_company_bank_account_company` (`company_id`);
 
---
--- Indexes for table `company_certificates`
---
 ALTER TABLE `company_certificates`
   ADD PRIMARY KEY (`id`),
   ADD KEY `fk_company_certificate_company` (`company_id`),
   ADD KEY `fk_company_certificate_file` (`certificate_file_id`);
 
---
--- Indexes for table `company_contact`
---
 ALTER TABLE `company_contact`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_company_contact_company` (`company_id`);
 
---
--- Indexes for table `company_legal_entity`
---
 ALTER TABLE `company_legal_entity`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `uq_company_legal_entity` (`company_id`),
   ADD KEY `idx_company_legal_entity_company` (`company_id`);
 
---
--- Indexes for table `company_party`
---
 ALTER TABLE `company_party`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `uq_company_party` (`company_id`),
   ADD KEY `idx_company_party_company` (`company_id`);
 
---
--- Indexes for table `company_sequences`
---
 ALTER TABLE `company_sequences`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `uq_company_sequence` (`company_id`,`sequence_name`),
   ADD KEY `idx_company_sequences_company` (`company_id`);
 
---
--- Indexes for table `company_storage_settings`
---
 ALTER TABLE `company_storage_settings`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `uq_company_storage` (`company_id`);
 
---
--- Indexes for table `company_tax_scheme`
---
 ALTER TABLE `company_tax_scheme`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `uq_company_tax_scheme_company` (`company_id`),
   ADD KEY `idx_company_vat_number` (`company_id_value`),
   ADD KEY `idx_company_tax_scheme_company` (`company_id`);
 
---
--- Indexes for table `company_zatca_certificates`
---
-ALTER TABLE `company_zatca_certificates`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_certificate_company` (`company_id`);
-
---
--- Indexes for table `company_zatca_credentials`
---
-ALTER TABLE `company_zatca_credentials`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `fk_credentials_certificate` (`certificate_id`),
-  ADD KEY `idx_credentials_company` (`company_id`);
-
---
--- Indexes for table `company_zatca_settings`
---
 ALTER TABLE `company_zatca_settings`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `uq_company_zatca` (`company_id`),
   ADD KEY `idx_company_zatca_settings_company` (`company_id`);
 
---
--- Indexes for table `customers`
---
 ALTER TABLE `customers`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_customers_company` (`company_id`),
@@ -1309,55 +854,34 @@ ALTER TABLE `customers`
   ADD KEY `idx_customers_vat_number` (`vat_number`),
   ADD KEY `idx_customers_status` (`status`);
 
---
--- Indexes for table `customer_address`
---
 ALTER TABLE `customer_address`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_customer_address_customer` (`customer_id`);
 
---
--- Indexes for table `customer_bank_account`
---
 ALTER TABLE `customer_bank_account`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_customer_bank_customer` (`customer_id`),
   ADD KEY `idx_customer_bank_account_customer` (`customer_id`);
 
---
--- Indexes for table `customer_contact`
---
 ALTER TABLE `customer_contact`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_customer_contact_customer` (`customer_id`);
 
---
--- Indexes for table `customer_legal_entity`
---
 ALTER TABLE `customer_legal_entity`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `uq_customer_legal_entity` (`customer_id`),
   ADD KEY `idx_customer_legal_entity_customer` (`customer_id`);
 
---
--- Indexes for table `customer_party`
---
 ALTER TABLE `customer_party`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `uq_customer_party` (`customer_id`),
   ADD KEY `idx_customer_party_customer` (`customer_id`);
 
---
--- Indexes for table `customer_tax_scheme`
---
 ALTER TABLE `customer_tax_scheme`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_customer_vat_number` (`vat_number`),
   ADD KEY `idx_customer_tax_scheme_customer` (`customer_id`);
 
---
--- Indexes for table `invoices`
---
 ALTER TABLE `invoices`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `uq_invoice_number_company` (`company_id`,`invoice_number`),
@@ -1370,174 +894,108 @@ ALTER TABLE `invoices`
   ADD KEY `idx_invoices_issue_date` (`issue_date`),
   ADD KEY `idx_invoices_status` (`invoice_status`);
 
---
--- Indexes for table `invoice_allowances`
---
 ALTER TABLE `invoice_allowances`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_invoice_allowance_invoice` (`invoice_id`),
   ADD KEY `idx_invoice_allowances_invoice` (`invoice_id`);
 
---
--- Indexes for table `invoice_attachments`
---
 ALTER TABLE `invoice_attachments`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_invoice_attachment_invoice` (`invoice_id`),
   ADD KEY `idx_invoice_attachments_invoice` (`invoice_id`);
 
---
--- Indexes for table `invoice_customer_party`
---
 ALTER TABLE `invoice_customer_party`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_invoice_customer_party_invoice` (`invoice_id`);
 
---
--- Indexes for table `invoice_delivery`
---
 ALTER TABLE `invoice_delivery`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `uq_invoice_delivery` (`invoice_id`),
   ADD KEY `idx_invoice_delivery_invoice` (`invoice_id`);
 
---
--- Indexes for table `invoice_documents`
---
 ALTER TABLE `invoice_documents`
   ADD PRIMARY KEY (`id`),
   ADD KEY `fk_invoice_documents_invoice` (`invoice_id`),
   ADD KEY `fk_invoice_documents_file` (`storage_file_id`);
 
---
--- Indexes for table `invoice_events`
---
 ALTER TABLE `invoice_events`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_invoice_events_invoice` (`invoice_id`);
 
---
--- Indexes for table `invoice_lines`
---
 ALTER TABLE `invoice_lines`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `uq_invoice_line_number` (`invoice_id`,`line_number`),
   ADD KEY `idx_invoice_lines_invoice` (`invoice_id`),
   ADD KEY `idx_invoice_lines_item` (`item_id`);
 
---
--- Indexes for table `invoice_line_taxes`
---
 ALTER TABLE `invoice_line_taxes`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_invoice_line_tax` (`invoice_line_id`),
   ADD KEY `idx_invoice_line_taxes_line` (`invoice_line_id`);
 
---
--- Indexes for table `invoice_notes`
---
 ALTER TABLE `invoice_notes`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_invoice_notes_invoice` (`invoice_id`);
 
---
--- Indexes for table `invoice_party_additional_identification`
---
 ALTER TABLE `invoice_party_additional_identification`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_invoice_party_identification` (`party_type`,`party_id`);
 
---
--- Indexes for table `invoice_party_address`
---
 ALTER TABLE `invoice_party_address`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_invoice_party_address` (`party_type`,`party_id`),
   ADD KEY `idx_invoice_party_address_invoice` (`invoice_id`);
 
---
--- Indexes for table `invoice_party_contact`
---
 ALTER TABLE `invoice_party_contact`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_invoice_party_contact` (`party_type`,`party_id`),
   ADD KEY `idx_invoice_party_contact_invoice` (`invoice_id`);
 
---
--- Indexes for table `invoice_party_legal_entity`
---
 ALTER TABLE `invoice_party_legal_entity`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_invoice_party_legal_entity` (`party_type`,`party_id`),
   ADD KEY `idx_invoice_party_legal_entity_invoice` (`invoice_id`);
 
---
--- Indexes for table `invoice_party_payment_account`
---
 ALTER TABLE `invoice_party_payment_account`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_invoice_party_payment_account` (`party_type`,`party_id`),
   ADD KEY `idx_invoice_party_payment_account_invoice` (`invoice_id`);
 
---
--- Indexes for table `invoice_party_tax_scheme`
---
 ALTER TABLE `invoice_party_tax_scheme`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_invoice_party_tax` (`party_type`,`party_id`),
   ADD KEY `idx_invoice_party_tax_scheme_invoice` (`invoice_id`);
 
---
--- Indexes for table `invoice_payment_means`
---
 ALTER TABLE `invoice_payment_means`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_invoice_payment_invoice` (`invoice_id`),
   ADD KEY `idx_invoice_payment_means_invoice` (`invoice_id`);
 
---
--- Indexes for table `invoice_references`
---
 ALTER TABLE `invoice_references`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_invoice_reference` (`invoice_id`),
   ADD KEY `idx_invoice_references_invoice` (`invoice_id`);
 
---
--- Indexes for table `invoice_supplier_party`
---
 ALTER TABLE `invoice_supplier_party`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `uq_invoice_supplier_party` (`invoice_id`),
   ADD KEY `idx_invoice_supplier_party_invoice` (`invoice_id`);
 
---
--- Indexes for table `invoice_tax_totals`
---
 ALTER TABLE `invoice_tax_totals`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_invoice_tax_invoice` (`invoice_id`),
   ADD KEY `idx_invoice_tax_totals_invoice` (`invoice_id`);
 
---
--- Indexes for table `invoice_totals`
---
 ALTER TABLE `invoice_totals`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `uq_invoice_totals` (`invoice_id`),
   ADD KEY `idx_invoice_totals_invoice` (`invoice_id`);
 
---
--- Indexes for table `invoice_zatca`
---
 ALTER TABLE `invoice_zatca`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `uq_invoice_uuid` (`uuid`),
   ADD KEY `idx_invoice_zatca_invoice` (`invoice_id`);
 
---
--- Indexes for table `items`
---
 ALTER TABLE `items`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `uq_item_company_code` (`company_id`,`item_code`),
@@ -1548,58 +1006,34 @@ ALTER TABLE `items`
   ADD KEY `idx_items_barcode` (`barcode`),
   ADD KEY `idx_items_status` (`status`);
 
---
--- Indexes for table `item_categories`
---
 ALTER TABLE `item_categories`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_item_category_company` (`company_id`);
 
---
--- Indexes for table `item_images`
---
 ALTER TABLE `item_images`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_item_images_item` (`item_id`);
 
---
--- Indexes for table `item_inventory`
---
 ALTER TABLE `item_inventory`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_inventory_item` (`item_id`);
 
---
--- Indexes for table `item_prices`
---
 ALTER TABLE `item_prices`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_item_prices_item` (`item_id`);
 
---
--- Indexes for table `item_tax_categories`
---
 ALTER TABLE `item_tax_categories`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_item_tax_company` (`company_id`);
 
---
--- Indexes for table `item_units`
---
 ALTER TABLE `item_units`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `uq_item_unit_company` (`company_id`,`unit_code`);
 
---
--- Indexes for table `item_zatca_data`
---
 ALTER TABLE `item_zatca_data`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `uq_item_zatca` (`item_id`);
 
---
--- Indexes for table `storage_files`
---
 ALTER TABLE `storage_files`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_storage_company` (`company_id`),
@@ -1607,752 +1041,368 @@ ALTER TABLE `storage_files`
   ADD KEY `idx_storage_type` (`file_type`),
   ADD KEY `idx_storage_created` (`created_at`);
 
---
--- Indexes for table `storage_logs`
---
 ALTER TABLE `storage_logs`
   ADD PRIMARY KEY (`id`),
   ADD KEY `fk_storage_logs_file` (`storage_file_id`),
   ADD KEY `fk_storage_logs_user` (`created_by`);
 
---
--- Indexes for table `system_settings`
---
 ALTER TABLE `system_settings`
   ADD PRIMARY KEY (`id`);
 
---
--- Indexes for table `users`
---
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `username` (`username`),
   ADD KEY `idx_users_email` (`email`),
   ADD KEY `idx_users_role` (`user_role`);
 
---
--- Indexes for table `zatca_api_logs`
---
+ALTER TABLE `user_current_company`
+  ADD PRIMARY KEY (`user_id`),
+  ADD KEY `fk_user_current_company_company` (`company_id`);
+
 ALTER TABLE `zatca_api_logs`
   ADD PRIMARY KEY (`id`),
   ADD KEY `fk_zatca_logs_company` (`company_id`),
   ADD KEY `idx_zatca_logs_invoice` (`invoice_id`);
 
---
--- Indexes for table `zatca_errors`
---
 ALTER TABLE `zatca_errors`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_zatca_errors_invoice` (`invoice_id`);
 
---
--- AUTO_INCREMENT for dumped tables
---
 
---
--- AUTO_INCREMENT for table `companies`
---
 ALTER TABLE `companies`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `company_address`
---
 ALTER TABLE `company_address`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `company_bank_account`
---
 ALTER TABLE `company_bank_account`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `company_certificates`
---
 ALTER TABLE `company_certificates`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `company_contact`
---
 ALTER TABLE `company_contact`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `company_legal_entity`
---
 ALTER TABLE `company_legal_entity`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `company_party`
---
 ALTER TABLE `company_party`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `company_sequences`
---
 ALTER TABLE `company_sequences`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `company_storage_settings`
---
 ALTER TABLE `company_storage_settings`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `company_tax_scheme`
---
 ALTER TABLE `company_tax_scheme`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `company_zatca_certificates`
---
-ALTER TABLE `company_zatca_certificates`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `company_zatca_credentials`
---
-ALTER TABLE `company_zatca_credentials`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `company_zatca_settings`
---
 ALTER TABLE `company_zatca_settings`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `customers`
---
 ALTER TABLE `customers`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `customer_address`
---
 ALTER TABLE `customer_address`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `customer_bank_account`
---
 ALTER TABLE `customer_bank_account`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `customer_contact`
---
 ALTER TABLE `customer_contact`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `customer_legal_entity`
---
 ALTER TABLE `customer_legal_entity`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `customer_party`
---
 ALTER TABLE `customer_party`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `customer_tax_scheme`
---
 ALTER TABLE `customer_tax_scheme`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `invoices`
---
 ALTER TABLE `invoices`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `invoice_allowances`
---
 ALTER TABLE `invoice_allowances`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `invoice_attachments`
---
 ALTER TABLE `invoice_attachments`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `invoice_customer_party`
---
 ALTER TABLE `invoice_customer_party`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `invoice_delivery`
---
 ALTER TABLE `invoice_delivery`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `invoice_documents`
---
 ALTER TABLE `invoice_documents`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `invoice_events`
---
 ALTER TABLE `invoice_events`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `invoice_lines`
---
 ALTER TABLE `invoice_lines`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `invoice_line_taxes`
---
 ALTER TABLE `invoice_line_taxes`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `invoice_notes`
---
 ALTER TABLE `invoice_notes`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `invoice_party_additional_identification`
---
 ALTER TABLE `invoice_party_additional_identification`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `invoice_party_address`
---
 ALTER TABLE `invoice_party_address`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `invoice_party_contact`
---
 ALTER TABLE `invoice_party_contact`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `invoice_party_legal_entity`
---
 ALTER TABLE `invoice_party_legal_entity`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `invoice_party_payment_account`
---
 ALTER TABLE `invoice_party_payment_account`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `invoice_party_tax_scheme`
---
 ALTER TABLE `invoice_party_tax_scheme`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `invoice_payment_means`
---
 ALTER TABLE `invoice_payment_means`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `invoice_references`
---
 ALTER TABLE `invoice_references`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `invoice_supplier_party`
---
 ALTER TABLE `invoice_supplier_party`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `invoice_tax_totals`
---
 ALTER TABLE `invoice_tax_totals`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `invoice_totals`
---
 ALTER TABLE `invoice_totals`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `invoice_zatca`
---
 ALTER TABLE `invoice_zatca`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `items`
---
 ALTER TABLE `items`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `item_categories`
---
 ALTER TABLE `item_categories`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `item_images`
---
 ALTER TABLE `item_images`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `item_inventory`
---
 ALTER TABLE `item_inventory`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `item_prices`
---
 ALTER TABLE `item_prices`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `item_tax_categories`
---
 ALTER TABLE `item_tax_categories`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `item_units`
---
 ALTER TABLE `item_units`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `item_zatca_data`
---
 ALTER TABLE `item_zatca_data`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `storage_files`
---
 ALTER TABLE `storage_files`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `storage_logs`
---
 ALTER TABLE `storage_logs`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `system_settings`
---
 ALTER TABLE `system_settings`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `users`
---
 ALTER TABLE `users`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `zatca_api_logs`
---
 ALTER TABLE `zatca_api_logs`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- AUTO_INCREMENT for table `zatca_errors`
---
 ALTER TABLE `zatca_errors`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
-
--- --------------------------------------------------------
-
---
--- Structure for view `v_company_profile`
---
 DROP TABLE IF EXISTS `v_company_profile`;
 
 CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_company_profile`  AS SELECT `c`.`id` AS `company_id`, `c`.`company_name` AS `company_name`, `c`.`commercial_registration_number` AS `commercial_registration_number`, `c`.`vat_number` AS `vat_number`, `cp`.`id` AS `party_id`, `ca`.`street_name` AS `street_name`, `ca`.`building_number` AS `building_number`, `ca`.`city_name` AS `city_name`, `ca`.`postal_zone` AS `postal_zone`, `ca`.`country_code` AS `country_code`, `cts`.`tax_scheme_id` AS `tax_scheme_id`, `cle`.`registration_name` AS `registration_name`, `cc`.`telephone` AS `telephone`, `cc`.`electronic_mail` AS `electronic_mail`, `czs`.`environment` AS `environment`, `czs`.`zatca_client_id` AS `zatca_client_id` FROM ((((((`companies` `c` left join `company_party` `cp` on((`cp`.`company_id` = `c`.`id`))) left join `company_address` `ca` on((`ca`.`company_id` = `c`.`id`))) left join `company_tax_scheme` `cts` on((`cts`.`company_id` = `c`.`id`))) left join `company_legal_entity` `cle` on((`cle`.`company_id` = `c`.`id`))) left join `company_contact` `cc` on((`cc`.`company_id` = `c`.`id`))) left join `company_zatca_settings` `czs` on((`czs`.`company_id` = `c`.`id`))) ;
-
--- --------------------------------------------------------
-
---
--- Structure for view `v_customer_profile`
---
 DROP TABLE IF EXISTS `v_customer_profile`;
 
 CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_customer_profile`  AS SELECT `cu`.`id` AS `customer_id`, `cu`.`customer_name` AS `customer_name`, `cu`.`vat_number` AS `vat_number`, `cp`.`id` AS `party_id`, `ca`.`street_name` AS `street_name`, `ca`.`building_number` AS `building_number`, `ca`.`city_name` AS `city_name`, `ca`.`postal_zone` AS `postal_zone`, `ca`.`country_code` AS `country_code`, `cts`.`tax_scheme_id` AS `tax_scheme_id`, `cle`.`registration_name` AS `registration_name`, `cc`.`telephone` AS `telephone`, `cc`.`electronic_mail` AS `electronic_mail` FROM (((((`customers` `cu` left join `customer_party` `cp` on((`cp`.`customer_id` = `cu`.`id`))) left join `customer_address` `ca` on((`ca`.`customer_id` = `cu`.`id`))) left join `customer_tax_scheme` `cts` on((`cts`.`customer_id` = `cu`.`id`))) left join `customer_legal_entity` `cle` on((`cle`.`customer_id` = `cu`.`id`))) left join `customer_contact` `cc` on((`cc`.`customer_id` = `cu`.`id`))) ;
-
--- --------------------------------------------------------
-
---
--- Structure for view `v_invoice_header`
---
 DROP TABLE IF EXISTS `v_invoice_header`;
 
 CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_invoice_header`  AS SELECT `i`.`id` AS `invoice_id`, `i`.`invoice_uuid` AS `invoice_uuid`, `i`.`invoice_number` AS `invoice_number`, `i`.`invoice_type` AS `invoice_type`, `i`.`issue_date` AS `issue_date`, `i`.`issue_time` AS `issue_time`, `i`.`currency_code` AS `currency_code`, `i`.`company_id` AS `company_id`, `i`.`customer_id` AS `customer_id`, `i`.`invoice_status` AS `invoice_status`, `it`.`line_extension_amount` AS `line_extension_amount`, `it`.`tax_exclusive_amount` AS `tax_exclusive_amount`, `it`.`tax_inclusive_amount` AS `tax_inclusive_amount`, `it`.`payable_amount` AS `payable_amount`, `itt`.`tax_amount` AS `tax_amount` FROM ((`invoices` `i` left join `invoice_totals` `it` on((`it`.`invoice_id` = `i`.`id`))) left join `invoice_tax_totals` `itt` on((`itt`.`invoice_id` = `i`.`id`))) ;
-
--- --------------------------------------------------------
-
---
--- Structure for view `v_invoice_lines`
---
 DROP TABLE IF EXISTS `v_invoice_lines`;
 
 CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_invoice_lines`  AS SELECT `il`.`id` AS `invoice_line_id`, `il`.`invoice_id` AS `invoice_id`, `il`.`line_number` AS `line_number`, `il`.`quantity` AS `quantity`, `il`.`unit_code` AS `unit_code`, `il`.`line_extension_amount` AS `line_extension_amount`, `il`.`item_id` AS `item_id`, `il`.`item_name` AS `item_name`, `il`.`item_description` AS `item_description`, `ilt`.`tax_category_id` AS `tax_category_id`, `ilt`.`tax_percent` AS `tax_percent`, `ilt`.`tax_amount` AS `tax_amount` FROM (`invoice_lines` `il` left join `invoice_line_taxes` `ilt` on((`ilt`.`invoice_line_id` = `il`.`id`))) ;
-
--- --------------------------------------------------------
-
---
--- Structure for view `v_invoice_payment`
---
 DROP TABLE IF EXISTS `v_invoice_payment`;
 
 CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_invoice_payment`  AS SELECT `i`.`id` AS `invoice_id`, `ipm`.`payment_means_code` AS `payment_means_code`, `ipm`.`payment_due_date` AS `payment_due_date`, `ipm`.`instruction_note` AS `instruction_note` FROM (`invoices` `i` left join `invoice_payment_means` `ipm` on((`ipm`.`invoice_id` = `i`.`id`))) ;
-
--- --------------------------------------------------------
-
---
--- Structure for view `v_invoice_status_history`
---
 DROP TABLE IF EXISTS `v_invoice_status_history`;
 
 CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_invoice_status_history`  AS SELECT `ie`.`invoice_id` AS `invoice_id`, `ie`.`event_type` AS `event_type`, `ie`.`event_message` AS `event_message`, `ie`.`created_at` AS `created_at` FROM `invoice_events` AS `ie` ;
-
--- --------------------------------------------------------
-
---
--- Structure for view `v_invoice_zatca_documents`
---
 DROP TABLE IF EXISTS `v_invoice_zatca_documents`;
 
 CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_invoice_zatca_documents`  AS SELECT `i`.`id` AS `invoice_id`, `i`.`invoice_number` AS `invoice_number`, `s`.`id` AS `storage_id`, `s`.`file_type` AS `file_type`, `s`.`file_path` AS `file_path`, `s`.`created_at` AS `created_at` FROM (`invoices` `i` left join `storage_files` `s` on((`s`.`invoice_id` = `i`.`id`))) ;
 
---
--- Constraints for dumped tables
---
 
---
--- Constraints for table `companies`
---
 ALTER TABLE `companies`
   ADD CONSTRAINT `fk_companies_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `company_address`
---
 ALTER TABLE `company_address`
   ADD CONSTRAINT `fk_company_address_company` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `company_bank_account`
---
 ALTER TABLE `company_bank_account`
   ADD CONSTRAINT `fk_company_bank_company` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `company_certificates`
---
 ALTER TABLE `company_certificates`
   ADD CONSTRAINT `fk_company_certificate_company` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `fk_company_certificate_file` FOREIGN KEY (`certificate_file_id`) REFERENCES `storage_files` (`id`) ON DELETE SET NULL;
 
---
--- Constraints for table `company_contact`
---
 ALTER TABLE `company_contact`
   ADD CONSTRAINT `fk_company_contact_company` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `company_legal_entity`
---
 ALTER TABLE `company_legal_entity`
   ADD CONSTRAINT `fk_company_legal_entity_company` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `company_party`
---
 ALTER TABLE `company_party`
   ADD CONSTRAINT `fk_company_party_company` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `company_sequences`
---
 ALTER TABLE `company_sequences`
   ADD CONSTRAINT `fk_company_sequences_company` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `company_storage_settings`
---
 ALTER TABLE `company_storage_settings`
   ADD CONSTRAINT `fk_company_storage_company` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `company_tax_scheme`
---
 ALTER TABLE `company_tax_scheme`
   ADD CONSTRAINT `fk_company_tax_scheme_company` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `company_zatca_certificates`
---
-ALTER TABLE `company_zatca_certificates`
-  ADD CONSTRAINT `fk_zatca_certificate_company` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE;
-
---
--- Constraints for table `company_zatca_credentials`
---
-ALTER TABLE `company_zatca_credentials`
-  ADD CONSTRAINT `fk_credentials_certificate` FOREIGN KEY (`certificate_id`) REFERENCES `company_zatca_certificates` (`id`) ON DELETE SET NULL,
-  ADD CONSTRAINT `fk_credentials_company` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE;
-
---
--- Constraints for table `company_zatca_settings`
---
 ALTER TABLE `company_zatca_settings`
   ADD CONSTRAINT `fk_company_zatca_company` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `customers`
---
 ALTER TABLE `customers`
   ADD CONSTRAINT `fk_customers_company` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `customer_address`
---
 ALTER TABLE `customer_address`
   ADD CONSTRAINT `fk_customer_address_customer` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `customer_bank_account`
---
 ALTER TABLE `customer_bank_account`
   ADD CONSTRAINT `fk_customer_bank_customer` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `customer_contact`
---
 ALTER TABLE `customer_contact`
   ADD CONSTRAINT `fk_customer_contact_customer` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `customer_legal_entity`
---
 ALTER TABLE `customer_legal_entity`
   ADD CONSTRAINT `fk_customer_legal_entity_customer` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `customer_party`
---
 ALTER TABLE `customer_party`
   ADD CONSTRAINT `fk_customer_party_customer` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `customer_tax_scheme`
---
 ALTER TABLE `customer_tax_scheme`
   ADD CONSTRAINT `fk_customer_tax_scheme_customer` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `invoices`
---
 ALTER TABLE `invoices`
   ADD CONSTRAINT `fk_invoices_company` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `fk_invoices_customer` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `fk_original_invoice` FOREIGN KEY (`original_invoice_id`) REFERENCES `invoices` (`id`) ON DELETE SET NULL;
 
---
--- Constraints for table `invoice_allowances`
---
 ALTER TABLE `invoice_allowances`
   ADD CONSTRAINT `fk_invoice_allowance_invoice` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `invoice_attachments`
---
 ALTER TABLE `invoice_attachments`
   ADD CONSTRAINT `fk_invoice_attachment_invoice` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `invoice_customer_party`
---
 ALTER TABLE `invoice_customer_party`
   ADD CONSTRAINT `fk_invoice_customer_party_invoice` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `invoice_delivery`
---
 ALTER TABLE `invoice_delivery`
   ADD CONSTRAINT `fk_invoice_delivery_invoice` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `invoice_documents`
---
 ALTER TABLE `invoice_documents`
   ADD CONSTRAINT `fk_invoice_documents_file` FOREIGN KEY (`storage_file_id`) REFERENCES `storage_files` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `fk_invoice_documents_invoice` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `invoice_events`
---
 ALTER TABLE `invoice_events`
   ADD CONSTRAINT `fk_invoice_event_invoice` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `invoice_lines`
---
 ALTER TABLE `invoice_lines`
   ADD CONSTRAINT `fk_invoice_lines_invoice` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `fk_invoice_lines_item` FOREIGN KEY (`item_id`) REFERENCES `items` (`id`) ON DELETE SET NULL;
 
---
--- Constraints for table `invoice_line_taxes`
---
 ALTER TABLE `invoice_line_taxes`
   ADD CONSTRAINT `fk_invoice_line_tax_line` FOREIGN KEY (`invoice_line_id`) REFERENCES `invoice_lines` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `invoice_notes`
---
 ALTER TABLE `invoice_notes`
   ADD CONSTRAINT `fk_invoice_note_invoice` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `invoice_payment_means`
---
 ALTER TABLE `invoice_payment_means`
   ADD CONSTRAINT `fk_invoice_payment_means_invoice` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `invoice_references`
---
 ALTER TABLE `invoice_references`
   ADD CONSTRAINT `fk_invoice_reference_invoice` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `invoice_supplier_party`
---
 ALTER TABLE `invoice_supplier_party`
   ADD CONSTRAINT `fk_invoice_supplier_party_invoice` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `invoice_tax_totals`
---
 ALTER TABLE `invoice_tax_totals`
   ADD CONSTRAINT `fk_invoice_tax_totals_invoice` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `invoice_totals`
---
 ALTER TABLE `invoice_totals`
   ADD CONSTRAINT `fk_invoice_totals_invoice` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `invoice_zatca`
---
 ALTER TABLE `invoice_zatca`
   ADD CONSTRAINT `fk_invoice_zatca_invoice` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `items`
---
 ALTER TABLE `items`
   ADD CONSTRAINT `fk_items_category` FOREIGN KEY (`category_id`) REFERENCES `item_categories` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `fk_items_company` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `fk_items_tax_category` FOREIGN KEY (`tax_category_id`) REFERENCES `item_tax_categories` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `fk_items_unit` FOREIGN KEY (`unit_id`) REFERENCES `item_units` (`id`) ON DELETE SET NULL;
 
---
--- Constraints for table `item_categories`
---
 ALTER TABLE `item_categories`
   ADD CONSTRAINT `fk_item_categories_company` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `item_images`
---
 ALTER TABLE `item_images`
   ADD CONSTRAINT `fk_item_images_item` FOREIGN KEY (`item_id`) REFERENCES `items` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `item_inventory`
---
 ALTER TABLE `item_inventory`
   ADD CONSTRAINT `fk_item_inventory_item` FOREIGN KEY (`item_id`) REFERENCES `items` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `item_prices`
---
 ALTER TABLE `item_prices`
   ADD CONSTRAINT `fk_item_prices_item` FOREIGN KEY (`item_id`) REFERENCES `items` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `item_tax_categories`
---
 ALTER TABLE `item_tax_categories`
   ADD CONSTRAINT `fk_item_tax_company` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `item_units`
---
 ALTER TABLE `item_units`
   ADD CONSTRAINT `fk_item_units_company` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `item_zatca_data`
---
 ALTER TABLE `item_zatca_data`
   ADD CONSTRAINT `fk_item_zatca_item` FOREIGN KEY (`item_id`) REFERENCES `items` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `storage_files`
---
 ALTER TABLE `storage_files`
   ADD CONSTRAINT `fk_storage_company` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `fk_storage_invoice` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`id`) ON DELETE CASCADE;
 
---
--- Constraints for table `storage_logs`
---
 ALTER TABLE `storage_logs`
   ADD CONSTRAINT `fk_storage_logs_file` FOREIGN KEY (`storage_file_id`) REFERENCES `storage_files` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `fk_storage_logs_user` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
 
---
--- Constraints for table `zatca_api_logs`
---
+ALTER TABLE `user_current_company`
+  ADD CONSTRAINT `fk_user_current_company_company` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_user_current_company_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
 ALTER TABLE `zatca_api_logs`
   ADD CONSTRAINT `fk_zatca_logs_company` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `fk_zatca_logs_invoice` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`id`) ON DELETE SET NULL;
 
---
--- Constraints for table `zatca_errors`
---
 ALTER TABLE `zatca_errors`
   ADD CONSTRAINT `fk_zatca_error_invoice` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`id`) ON DELETE CASCADE;
 COMMIT;
-
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

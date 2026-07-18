@@ -278,12 +278,8 @@ class CertificateService
             $result->getSecret()
         );
 
-        saveProductionCredentials(
-            $result->getCertificate(),
-            $result->getSecret(),
-            $result->getRequestId()
-        );
 
+        
         $company = loadCurrentCompany();
 
         updateCertificateValidity(

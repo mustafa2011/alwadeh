@@ -12,7 +12,7 @@
 function getStoragePath(): string
 {
     if (!is_dir(STORAGE_PATH)) {
-        mkdir(STORAGE_PATH, 0777, true);
+        mkdir(STORAGE_PATH, 0755, true);
     }
 
     return STORAGE_PATH;
@@ -25,7 +25,7 @@ function getCompaniesPath(): string
     $path = getStoragePath() . '/Companies';
 
     if (!is_dir($path)) {
-        mkdir($path, 0777, true);
+        mkdir($path, 0755, true);
     }
 
     return $path;
@@ -38,7 +38,7 @@ function getCompanyPath(string $crn): string {
     $path = getCompaniesPath() . '/' . trim($crn);
 
     if (!is_dir($path)) {
-        mkdir($path, 0777, true);
+        mkdir($path, 0755, true);
     }
 
     return $path;
@@ -70,14 +70,20 @@ function ensureCompanyDirectories(string $crn): void {
             : getCompanyPath($crn) . '/' . $folder;
 
         if (!is_dir($path)) {
-            mkdir($path, 0777, true);
+            mkdir($path, 0755, true);
         }
     }
 }
 
-/**
- * Returns Storage/current_company.json
- */
-function getCurrentCompanyStorageFile(): string {
-    return getStoragePath() . DIRECTORY_SEPARATOR . 'current_company.json';
+function companyPath(?string $crn = null): string
+{
+    if ($crn === null) {
+        $crn = getCurrentCompany();
+
+        if (!$crn) {
+            throw new Exception('No current company selected.');
+        }
+    }
+
+    return getCompanyPath($crn);
 }

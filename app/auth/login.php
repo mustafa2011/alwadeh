@@ -50,14 +50,6 @@ if (!$user) {
 
 session_start();
 
-$_SESSION['user'] = [
-    'id' => $user['id'],
-    'name' => $user['name'],
-    'email' => $user['email'],
-    'full_name' => $user['full_name'],
-    'user_role' => $user['user_role']
-];
-
 echo json_encode([
     'success' => true,
     'message' => 'Login Success'

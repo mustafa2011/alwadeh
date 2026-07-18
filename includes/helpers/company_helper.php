@@ -41,13 +41,7 @@ function getAllCompanies(): array
     return $db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
 }
 
-/**
- * Returns company.json path.
- */
-function getCompanyJsonFile(string $crn): string
-{
-    return getCompanyFile($crn, 'company.json');
-}
+
 /**
  * Check if company exists.
  */
@@ -321,37 +315,83 @@ function deleteDirectoryRecursive(string $dir): void
  * @param string $crn
  *  
  */
-
- function setCurrentCompany(string $crn): void
+function setCurrentCompany(string $crn): bool
 {
+    $pdo = Database::getConnection();
+
+    $userId = $_SESSION['user']['id'] ?? 0;
+
+    if (!$userId) {
+        throw new Exception('User not authenticated.');
+    }
+
+    $stmt = $pdo->prepare("
+        SELECT id
+        FROM companies
+        WHERE commercial_registration_number = ?
+        LIMIT 1
+    ");
+
+    $stmt->execute([$crn]);
+
+    $companyId = $stmt->fetchColumn();
+
+    if (!$companyId) {
+        throw new Exception('Company not found.');
+    }
+
+    $stmt = $pdo->prepare("
+        INSERT INTO user_current_company
+        (user_id, company_id)
+        VALUES (?, ?)
+        ON DUPLICATE KEY UPDATE
+            company_id = VALUES(company_id),
+            updated_at = CURRENT_TIMESTAMP
+    ");
+
+    $stmt->execute([
+        $userId,
+        $companyId
+    ]);
+
     $_SESSION['company_crn'] = $crn;
+
+    return true;
 }
 
-
-/**
- * Get current company CRN.
- */
-// function getCurrentCompany(): ?string
-// {
-//     $file = getCurrentCompanyStorageFile();
-
-//     if (!file_exists($file)) {
-//         return null;
-//     }
-
-//     $data = loadJsonFile($file);
-
-//     if (empty($data['crn'])) {
-//         return null;
-//     }
-
-//     $_SESSION['current_company'] = $data['crn'];
-
-//     return $data['crn'];
-// }
+/** Get current company */
 function getCurrentCompany(): ?string
 {
-    return $_SESSION['company_crn'] ?? null;
+    if (!empty($_SESSION['company_crn'])) {
+        return $_SESSION['company_crn'];
+    }
+
+    $userId = $_SESSION['user']['id'] ?? null;
+
+    if (!$userId) {
+        return null;
+    }
+
+    $pdo = Database::getConnection();
+
+    $stmt = $pdo->prepare("
+        SELECT c.commercial_registration_number
+        FROM user_current_company ucc
+        INNER JOIN companies c ON c.id = ucc.company_id
+        WHERE ucc.user_id = ?
+        LIMIT 1
+    ");
+
+    $stmt->execute([$userId]);
+
+    $crn = $stmt->fetchColumn();
+
+    if ($crn) {
+        $_SESSION['company_crn'] = $crn;
+        return $crn;
+    }
+
+    return null;
 }
 /**
  * Get current company information.
@@ -384,20 +424,6 @@ function getCurrentCompanyPath(): ?string
 
     if (!$crn) {
         return null;
-    }
-
-    return getCompanyPath($crn);
-}
-
-/**
- * Returns current company directory.
- */
-function companyPath(): string
-{
-    $crn = getCurrentCompany();
-
-    if (!$crn) {
-        throw new Exception('No company selected.');
     }
 
     return getCompanyPath($crn);
