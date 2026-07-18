@@ -118,7 +118,7 @@ class InvoiceService
     }
 
     public function issueInvoice( array $invoiceData, bool $submit = true): array  {
-        $this->loadCurrentCompany();
+        loadCurrentCompany();
         $this->loadInvoiceState();
         $this->validateGenerationRequirements();
         $type = $this->getInvoiceType($invoiceData);
@@ -259,7 +259,7 @@ class InvoiceService
         return $invoice;
     }
     public function signInvoice(string $xmlPath): array {
-        $this->loadCurrentCompany();
+        loadCurrentCompany();
         $this->validateSigningRequirements();
         return $this->signInvoiceXml($xmlPath);
     }

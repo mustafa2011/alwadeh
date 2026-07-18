@@ -93,14 +93,27 @@ if (!function_exists('loadPrivateKey')) {
      */
     function loadPrivateKey()
     {
-        $privateKey = file_get_contents(
-            getCompliancePrivateKeyPath()
-        );
-
-        if ($privateKey === false) {
-            throw new Exception('Unable to read private key.');
+        $company = loadCurrentCompany();
+        $pdo = Database::getConnection();
+    
+        $stmt = $pdo->prepare("
+            SELECT private_key_content
+            FROM company_zatca_settings
+            WHERE company_id = ?
+            ORDER BY id DESC
+            LIMIT 1
+        ");
+    
+        $stmt->execute([
+            $company['id']
+        ]);
+    
+        $privateKey = $stmt->fetchColumn();
+    
+        if (!$privateKey) {
+            throw new Exception('Private key not found.');
         }
-
+    
         return trim(
             preg_replace(
                 '/-----(?:BEGIN|END)(?: EC)? PRIVATE KEY-----/',
@@ -147,7 +160,7 @@ if (!function_exists('saveProductionCredentials')) {
                 return;
             }
             $stmt = $pdo->prepare("
-                INSERT INTO company_zatca_certificates
+                INSERT INTO company_zatca_settings
                 (
                     company_id,
                     certificate_type,
@@ -195,90 +208,208 @@ if (!function_exists('saveProductionCredentials')) {
     }
 }
 
-if (!function_exists('saveComplianceCertificate')) {
-
-    /**
-     * Save compliance certificate.
-     *
-     * @param object $result
-     * @param string $csr
-     * @param string $privateKey
-     * @return int
-     * @throws Exception
-     */
-    function saveComplianceCertificate(
-        object $result,
-        string $csr,
-        string $privateKey
-    ): int {
-        $company = loadCurrentCompany();
-        $pdo = Database::getConnection();
-        $pdo->beginTransaction();
-        try {
-            $stmt = $pdo->prepare("
-                SELECT id
-                FROM company_zatca_certificates
-                WHERE company_id = ?
-                AND certificate_type = 'compliance'
-                LIMIT 1
-            ");
-            $stmt->execute([$company['id']]);
-            $existingCertificate = $stmt->fetchColumn();
-            if ($existingCertificate) {
-                $pdo->commit();
-                return (int)$existingCertificate;
-            }
-            $stmt = $pdo->prepare("
-                INSERT INTO company_zatca_certificates
-                (
-                    company_id,
-                    certificate_type,
-                    private_key_content,
-                    csr_content,
-                    certificate_serial,
-                    environment,
-                    status
-                )
-                VALUES (?,?,?,?,?,?,?)
-            ");
-            $stmt->execute([
-                $company['id'],
-                'compliance',
-                $privateKey,
-                $csr,
-                null,
-                getApiEnvironment(),
-                'approved'
-            ]);
-            $certificateId = (int)$pdo->lastInsertId();
-            $stmt = $pdo->prepare("
-                INSERT INTO company_zatca_credentials
-                (
-                    company_id,
-                    certificate_id,
-                    request_id,
-                    binary_security_token,
-                    secret,
-                    environment
-                )
-                VALUES (?,?,?,?,?,?)
-            ");
-            $stmt->execute([
-                $company['id'],
-                $certificateId,
-                $result->getRequestId(),
-                $result->getCertificate(),
-                $result->getSecret(),
-                getApiEnvironment()
-            ]);
+/**
+ * Save compliance certificate.
+ *
+ * @param object $result
+ * @param string $csr
+ * @param string $privateKey
+ * @return int
+ * @throws Exception
+ */
+function saveComplianceCertificate(
+    object $result,
+    string $csr,
+    string $privateKey
+): int {
+    $company = loadCurrentCompany();
+    $pdo = Database::getConnection();
+    $pdo->beginTransaction();
+    try {
+        $stmt = $pdo->prepare("
+            SELECT id
+            FROM company_zatca_settings
+            WHERE company_id = ?
+            LIMIT 1
+        ");
+        $stmt->execute([$company['id']]);
+        $existingCertificate = $stmt->fetchColumn();
+        if ($existingCertificate) {
             $pdo->commit();
-            return $certificateId;
-        } catch (Throwable $e) {
-            if ($pdo->inTransaction()) {
-                $pdo->rollBack();
-            }
-            throw $e;
+            return (int)$existingCertificate;
         }
+        $stmt = $pdo->prepare("
+            INSERT INTO company_zatca_settings
+            (
+                company_id,
+                certificate_type,
+                private_key_content,
+                csr_content,
+                certificate_serial,
+                environment,
+                status
+            )
+            VALUES (?,?,?,?,?,?,?)
+        ");
+        $stmt->execute([
+            $company['id'],
+            'compliance',
+            $privateKey,
+            $csr,
+            null,
+            getApiEnvironment(),
+            'approved'
+        ]);
+        $certificateId = (int)$pdo->lastInsertId();
+        $stmt = $pdo->prepare("
+            INSERT INTO company_zatca_credentials
+            (
+                company_id,
+                certificate_id,
+                request_id,
+                binary_security_token,
+                secret,
+                environment
+            )
+            VALUES (?,?,?,?,?,?)
+        ");
+        $stmt->execute([
+            $company['id'],
+            $certificateId,
+            $result->getRequestId(),
+            $result->getCertificate(),
+            $result->getSecret(),
+            getApiEnvironment()
+        ]);
+        $pdo->commit();
+        return $certificateId;
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $e;
     }
 }
 
+function saveCertificateSettings(array $settings): void
+{
+    $pdo = Database::getConnection();
+
+    $stmt = $pdo->prepare("
+        INSERT INTO company_zatca_settings (
+            company_id,
+            environment,
+            certificate_path,
+            private_key_path,
+            vat_number,
+            crn,
+            organization_name,
+            branch_name,
+            address,
+            street,
+            building_number,
+            subdivision,
+            city,
+            postal_zone,
+            business_category,
+            invoice_type,
+            common_name,
+            serial_1,
+            serial_2,
+            generated_uuid,
+            generated_at
+        ) VALUES (
+            :company_id,
+            :environment,
+            :certificate_path,
+            :private_key_path,
+            :vat_number,
+            :crn,
+            :organization_name,
+            :branch_name,
+            :address,
+            :street,
+            :building_number,
+            :subdivision,
+            :city,
+            :postal_zone,
+            :business_category,
+            :invoice_type,
+            :common_name,
+            :serial_1,
+            :serial_2,
+            :generated_uuid,
+            :generated_at
+        )
+        ON DUPLICATE KEY UPDATE
+            environment        = VALUES(environment),
+            certificate_path   = VALUES(certificate_path),
+            private_key_path   = VALUES(private_key_path),
+            vat_number         = VALUES(vat_number),
+            crn                = VALUES(crn),
+            organization_name  = VALUES(organization_name),
+            branch_name        = VALUES(branch_name),
+            address            = VALUES(address),
+            street             = VALUES(street),
+            building_number    = VALUES(building_number),
+            subdivision        = VALUES(subdivision),
+            city               = VALUES(city),
+            postal_zone        = VALUES(postal_zone),
+            business_category  = VALUES(business_category),
+            invoice_type       = VALUES(invoice_type),
+            common_name        = VALUES(common_name),
+            serial_1           = VALUES(serial_1),
+            serial_2           = VALUES(serial_2),
+            generated_uuid     = VALUES(generated_uuid),
+            generated_at       = VALUES(generated_at)
+    ");
+
+    $stmt->execute($settings);
+}
+
+function updateComplianceSettings(
+    int $companyId,
+    string $requestId,
+    string $certificate,
+    string $secret
+): void
+{
+    $stmt = Database::getConnection()->prepare("
+        UPDATE company_zatca_settings
+        SET
+            compliance_request_id = ?,
+            request_id = ?,
+            compliance_certificate_content = ?,
+            compliance_secret = ?,
+            updated_at = NOW()
+        WHERE company_id = ?
+    ");
+
+    $stmt->execute([
+        $requestId,
+        $requestId,
+        $certificate,
+        $secret,
+        $companyId
+    ]);
+}
+
+function getCertificateSettings(int $companyId): array
+{
+    $stmt = Database::getConnection()->prepare("
+        SELECT *
+        FROM company_zatca_settings
+        WHERE company_id = ?
+        LIMIT 1
+    ");
+
+    $stmt->execute([$companyId]);
+
+    $settings = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$settings) {
+        throw new Exception('Certificate settings not found.');
+    }
+
+    return $settings;
+}

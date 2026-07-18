@@ -14,6 +14,7 @@
 
  
  use Saleh7\Zatca\CertificateBuilder;
+ use App\Core\Database;
 
 
 if (!function_exists('jsonResponse')) {
@@ -106,14 +107,19 @@ if (!function_exists('getEnvironment')) {
     function getEnvironment()
     {
         $settings = loadCertificateSettings();
-
+        $environment = match ($settings['environment'] ?? 'simulation') {
+            'nonprod'    => 'sandbox',
+            'simulation' => 'simulation',
+            'production' => 'production',
+            default      => 'sandbox'
+        };
         if (empty($settings['environment'])) {
             throw new Exception(
                 'Environment not found in certificate settings.'
             );
         }
 
-        return $settings['environment'];
+        return $environment;
     }
 }
 
@@ -171,22 +177,27 @@ if (!function_exists('getCommonNameByEnvironment')) {
     }
 }
 
-if (!function_exists('loadCertificateSettings')) {
+function loadCertificateSettings($settingsFile = null): array
+{
+    $company = loadCurrentCompany();
 
-    /**
-     * Load certificate settings.
-     *
-     * @param string|null $settingsFile
-     * @return array
-     * @throws Exception
-     */
-    function loadCertificateSettings($settingsFile = null)
-    {
-        if ($settingsFile === null) {
-            $settingsFile = getCertificateSettingsFile();
-        }
-
-        return loadJsonFile($settingsFile);
+    if (empty($company['id'])) {
+        return [];
     }
+
+    $pdo = Database::getConnection();
+
+    $stmt = $pdo->prepare("
+        SELECT *
+        FROM company_zatca_settings
+        WHERE company_id = ?
+        LIMIT 1
+    ");
+
+    $stmt->execute([
+        $company['id']
+    ]);
+
+    return $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
 }
 

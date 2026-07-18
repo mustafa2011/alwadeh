@@ -133,7 +133,6 @@ class CertificateService
     
         $csrPath = getCSRFile();
         $keyPath = getPrivateKeyFile();
-        $settingPath = getCertificateSettingsFile();
         
         // Take backup if certificate files exist
         $this->backupCertificateFiles();
@@ -155,29 +154,36 @@ class CertificateService
         }
     
         $settings = [
-            'environment'       => $environment,
-            'vat_number'        => $company['tax_scheme']['company_id'] ?? '',
-            'crn'               => $company['commercial_registration_number'] ?? '',
-            'organization_name' => $company['legal_entity']['registration_name'] ?? '',
-            'branch_name'       => $data['organizational_unit_name'],
-            'address'           => $data['address'],
-            'street'            => $company['address']['street_name'] ?? '',
-            'building_number'   => $company['address']['building_number'] ?? '',
-            'subdivision'       => $company['address']['city_subdivision_name'] ?? '',
-            'city'              => $company['address']['city_name'] ?? '',
-            'postal_zone'       => $company['address']['postal_zone'] ?? '',
-            'business_category' => $data['business_category'],
-            'invoice_type'      => $data['invoice_type'],
-            'common_name'       => $commonName,
-            'serial_1'          => $data['serial_1'],
-            'serial_2'          => $data['serial_2'],
-            'generated_uuid'    => $uuid,
-            'generated_at'      => date('Y-m-d H:i:s')
+            'company_id'         => (int) $company['id'],
+            'environment'        => $environment,
+        
+            'vat_number'         => $company['tax_scheme']['company_id'] ?? '',
+            'crn'                => $company['commercial_registration_number'] ?? '',
+            'organization_name'  => $company['legal_entity']['registration_name'] ?? '',
+            'branch_name'        => $data['organizational_unit_name'],
+            'address'            => $data['address'],
+        
+            'street'             => $company['address']['street_name'] ?? '',
+            'building_number'    => $company['address']['building_number'] ?? '',
+            'subdivision'        => $company['address']['city_subdivision_name'] ?? '',
+            'city'               => $company['address']['city_name'] ?? '',
+            'postal_zone'        => $company['address']['postal_zone'] ?? '',
+        
+            'business_category'  => $data['business_category'],
+            'invoice_type'       => $data['invoice_type'],
+        
+            'common_name'        => $commonName,
+            'serial_1'           => $data['serial_1'],
+            'serial_2'           => $data['serial_2'],
+            'generated_uuid'     => $uuid,
+            'generated_at'       => date('Y-m-d H:i:s'),
+        
+            'certificate_path'   => $csrPath,
+            'private_key_path'   => $keyPath
         ];
     
-        saveJsonFile($settingPath, $settings);
-    
-        updateCompanyStatus('csr_generated');
+         saveCertificateSettings($settings);    
+        updateCompanyStatus(COMPANY_STATUS_CSR);
     
         $this->settings = $settings;
     
@@ -256,7 +262,13 @@ class CertificateService
             trim($otp)
         );
     
-    
+        updateComplianceSettings(
+            (int)$this->company['id'],
+            $result->getRequestId(),
+            $result->getCertificate(),
+            $result->getSecret()
+        );
+
         $this->backupCertificateFiles(
             false,
             false,
@@ -359,11 +371,13 @@ class CertificateService
         }
     
         $production = requestProductionCertificate(
-            
+
             $api,
             $credentials
         );
 
+        updateCompanyStatus(COMPANY_STATUS_PRODUCTION);
+        
         return [
             'success' => true,
             'message' => 'Compliance completed successfully.',
@@ -448,10 +462,7 @@ class CertificateService
         $this->settings['generated_uuid'] = $uuid;
         $this->settings['generated_at'] = date('Y-m-d H:i:s');
 
-        saveJsonFile(
-            getCertificateSettingsFile(),
-            $this->settings
-        );
+        saveCertificateSettings($this->settings);
 
         return [
             'success' => true,

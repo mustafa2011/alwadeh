@@ -436,6 +436,7 @@ function getPreviousInvoiceHash(string $stateFile): string {
 
 /**
  * Submit a signed invoice to ZATCA.
+ * @param object $api
  */
 function submitInvoice(
     $api,

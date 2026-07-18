@@ -200,7 +200,7 @@ if (!function_exists('getOutputFile')) {
     /**
      * Get full path for an output file.
      *
-     * @param string $fileName
+     * @param string $file
      * @return string
      */
 
