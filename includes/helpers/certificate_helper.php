@@ -346,9 +346,7 @@ function updateCertificateValidity(int $companyId, string $certificate): void
     $x509 = new \phpseclib3\File\X509();
 
     $x509->loadX509($certificate);
-    echo '<pre>';
-    print_r($x509->getCurrentCert()['tbsCertificate']['validity']);
-    exit;
+
     $cert = $x509->getCurrentCert();
 
     $validFrom = $cert['tbsCertificate']['validity']['notBefore']['utcTime']
