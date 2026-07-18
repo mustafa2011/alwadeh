@@ -124,6 +124,10 @@ class CertificateService
             (int)$this->company['id'],
             $data
         );
+        
+        // To update company address
+        $this->company = loadCurrentCompany();
+        $company = $this->company;        
 
         $environment = $data['environment'] ?? 'nonprod';
     
@@ -157,9 +161,9 @@ class CertificateService
             'company_id'         => (int) $company['id'],
             'environment'        => $environment,
         
-            'vat_number'         => $company['tax_scheme']['company_id'] ?? '',
+            'vat_number'         => $company['tax_scheme']['company_id_value'] ?? '',
             'crn'                => $company['commercial_registration_number'] ?? '',
-            'organization_name'  => $company['legal_entity']['registration_name'] ?? '',
+            'organization_name'  => $company['registration_name'] ?? '',
             'branch_name'        => $data['organizational_unit_name'],
             'address'            => $data['address'],
         
@@ -176,6 +180,11 @@ class CertificateService
             'serial_1'           => $data['serial_1'],
             'serial_2'           => $data['serial_2'],
             'generated_uuid'     => $uuid,
+            'serial_number'      => $data['serial_1'].'|'.$data['serial_2'].'|'.$uuid,
+            'certificate_name'   => $data['serial_1'].'_'.$data['serial_2'].'_'.$uuid,            
+            'csr_content'        => file_get_contents($csrPath),
+            'private_key_content' => file_get_contents($keyPath),
+            'status'             => 'generated',            
             'generated_at'       => date('Y-m-d H:i:s'),
         
             'certificate_path'   => $csrPath,
@@ -269,6 +278,19 @@ class CertificateService
             $result->getSecret()
         );
 
+        saveProductionCredentials(
+            $result->getCertificate(),
+            $result->getSecret(),
+            $result->getRequestId()
+        );
+
+        $company = loadCurrentCompany();
+
+        updateCertificateValidity(
+            (int)$company['id'],
+            $result->getCertificate()
+        );
+        
         $this->backupCertificateFiles(
             false,
             false,
@@ -397,36 +419,27 @@ class CertificateService
      */
     public function generateRenewCSR(): array
     {
-        $company = initializeCompany([
-            'crn'          => $data['crn'] ?? '',
-            'vat'          => $data['organization_identifier'] ?? '',
-            'company_name' => $data['organization_name'] ?? '',
-            'branch_name'  => $data['organizational_unit_name'] ?? '',
-            'environment'  => $data['environment'] ?? 'nonprod'
-        ]);
-        
-        // setCurrentCompany($data['crn']);
-        
-        $company = loadCurrentCompany();        
-
-        if (empty($this->productionCredentials['certificate'])) {
-            throw new Exception(
-                'Production certificate not found.'
-            );
+        $company = loadCurrentCompany();
+    
+        $this->company = $company;
+        $this->settings = getCertificateSettings((int)$company['id']);
+    
+        if (empty($this->settings['production_certificate_content'])) {
+            throw new Exception('Production certificate not found.');
         }
-
+    
         $this->backupCertificateFiles();
-
+    
         $uuid = generateUUID();
-
+    
         $commonName = getCommonNameByEnvironment(
             $this->settings['environment']
         );
-
+    
         $csrPath = getCSRFile();
-
+    
         $keyPath = getPrivateKeyFile();
-
+    
         (new CertificateBuilder())
             ->setOrganizationIdentifier($this->settings['vat_number'])
             ->setSerialNumber(
@@ -436,34 +449,23 @@ class CertificateService
             )
             ->setCommonName($commonName)
             ->setCountryName('SA')
-            ->setOrganizationName(
-                $this->settings['organization_name']
-            )
-            ->setOrganizationalUnitName(
-                $this->settings['branch_name']
-            )
-            ->setAddress(
-                $this->settings['address']
-            )
-            ->setInvoiceType(
-                $this->settings['invoice_type']
-            )
-            ->setEnvironment(
-                $this->settings['environment']
-            )
-            ->setBusinessCategory(
-                $this->settings['business_category']
-            )
+            ->setOrganizationName($this->settings['organization_name'])
+            ->setOrganizationalUnitName($this->settings['branch_name'])
+            ->setAddress($this->settings['address'])
+            ->setInvoiceType($this->settings['invoice_type'])
+            ->setEnvironment($this->settings['environment'])
+            ->setBusinessCategory($this->settings['business_category'])
             ->generateAndSave(
                 $csrPath,
                 $keyPath
             );
-
+    
         $this->settings['generated_uuid'] = $uuid;
         $this->settings['generated_at'] = date('Y-m-d H:i:s');
-
+        $this->settings['status'] = 'generated';
+    
         saveCertificateSettings($this->settings);
-
+    
         return [
             'success' => true,
             'message' => 'Renewal CSR generated successfully.'
@@ -480,16 +482,15 @@ class CertificateService
      */
     public function renewProductionCertificate(string $otp): array
     {
-
         if (trim($otp) === '') {
             throw new Exception('OTP is required.');
         }
     
-        $this->company = loadCurrentCompany();
+        $company = loadCurrentCompany();
     
-        $credentials = loadComplianceCredentials();
+        $credentials = loadProductionCredentials();
     
-        $csrPath = $this->getCsrPath();
+        $csrPath = getCSRFile();
     
         if (!file_exists($csrPath)) {
             throw new Exception('Renewal CSR not found.');
@@ -522,9 +523,10 @@ class CertificateService
             $result->getRequestId()
         );
     
-        updateCurrentCompany([
-            'last_request_id' => $result->getRequestId()
-        ]);
+        updateCertificateValidity(
+            (int)$company['id'],
+            $result->getCertificate()
+        );
     
         return [
             'success' => true,

@@ -43,11 +43,9 @@ if (!function_exists('requestProductionCertificate')) {
         );
     
         saveProductionCredentials(
-    
             $result->getCertificate(),
             $result->getSecret(),
             $result->getRequestId()
-    
         );
     
         updateCompanyStatus(COMPANY_STATUS_PRODUCTION);

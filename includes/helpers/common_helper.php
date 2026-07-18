@@ -149,6 +149,32 @@ if(!function_exists('getApiEnvironment')) {
     }
 }
 
+if(!function_exists('getDatabaseEnvironment')) {
+    /**
+     * Get environment value compatible with Database.
+     *
+     * @return string
+     * @throws Exception
+     */
+    function getDatabaseEnvironment()
+    {
+        switch (getEnvironment()) {
+    
+            case CertificateBuilder::ENV_NONPROD:
+                return 'nonprod';
+    
+            case CertificateBuilder::ENV_SIMULATION:
+                return 'simulation';
+    
+            case CertificateBuilder::ENV_PRODUCTION:
+                return 'production';
+    
+            default:
+                throw new Exception('Invalid environment.');
+        }
+    }
+}
+
 if (!function_exists('getCommonNameByEnvironment')) {
 
     /**
