@@ -24,18 +24,18 @@ function getAllCompanies(): array
     $sql = "
         SELECT
             c.id,
-            c.crn,
-            c.vat,
+            c.commercial_registration_number AS crn,
+            c.vat_number AS vat,
             c.environment,
-            c.is_active,
-            cp.company_name,
-            cp.branch_name,
+            c.status AS is_active,
+            c.company_name,
+            ca.city_subdivision_name AS branch_name,
             c.created_at,
             c.updated_at
         FROM companies c
-        LEFT JOIN company_party cp
-            ON cp.company_id = c.id
-        ORDER BY cp.company_name ASC
+        LEFT JOIN company_address ca
+            ON ca.company_id = c.id
+        ORDER BY c.company_name ASC
     ";
 
     return $db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
@@ -273,19 +273,21 @@ function saveCompany(string $crn, array $company): bool
  */
 function deleteCompany(string $crn): bool
 {
+    $pdo = Database::getConnection();
+    $stmt = $pdo->prepare("
+        DELETE FROM companies
+        WHERE commercial_registration_number = ?
+    ");
+    $stmt->execute([$crn]);
     $path = getCompanyPath($crn);
-
-    if (!is_dir($path)) {
-        return false;
+    if (is_dir($path)) {
+        deleteDirectoryRecursive($path);
     }
-
-    deleteDirectoryRecursive($path);
-
     if ($crn === getCurrentCompany()) {
         clearCurrentCompany();
     }
 
-    return true;
+    return $stmt->rowCount() > 0;
 }
 
 /**
@@ -317,27 +319,10 @@ function deleteDirectoryRecursive(string $dir): void
  * Set current company.
  *
  * @param string $crn
- * @return bool
+ *  
  */
-// function setCurrentCompany(string $crn): bool
-// {
-//     if (!companyExists($crn)) {
-//         return false;
-//     }
 
-//     $_SESSION['current_company'] = $crn;
-
-//     saveJsonFile(
-//         getCurrentCompanyStorageFile(),
-//         [
-//             'crn'        => $crn,
-//             'updated_at' => date('c')
-//         ]
-//     );
-
-//     return true;
-// }
-function setCurrentCompany(string $crn): void
+ function setCurrentCompany(string $crn): void
 {
     $_SESSION['company_crn'] = $crn;
 }
@@ -387,13 +372,7 @@ function getCurrentCompanyInfo(): ?array
  */
 function clearCurrentCompany(): void
 {
-    unset($_SESSION['current_company']);
-
-    // $file = getCurrentCompanyStorageFile();
-
-    // if (file_exists($file)) {
-    //     unlink($file);
-    // }
+    unset($_SESSION['company_crn']);
 }
 
 /**
@@ -485,7 +464,7 @@ function initializeCompany(array $data): array
         createCompany($data);
     }
 
-    // setCurrentCompany($crn);
+    setCurrentCompany($crn);
 
     $company = getCompany($crn);
 
@@ -568,9 +547,9 @@ function updateCompanyStatus(string $status, bool $value = true): bool
     $pdo = Database::getConnection();
 
     $column = match ($status) {
-        'csr_generated' => 'csr_generated',
-        'compliance_certificate' => 'compliance_certificate',
-        'production_certificate' => 'production_certificate',
+        'csr_generated' => COMPANY_STATUS_CSR,
+        'compliance_certificate' => COMPANY_STATUS_COMPLIANCE,
+        'production_certificate' => COMPANY_STATUS_PRODUCTION ,
         default => null
     };
 
@@ -590,13 +569,7 @@ function updateCompanyStatus(string $status, bool $value = true): bool
     ]);
 }
 
-/**
- * Returns current company storage file.
- */
-// function getCurrentCompanyFile(): string
-// {
-//     return getCurrentCompanyStorageFile();
-// }
+
 
 /**
  * Validate company data.

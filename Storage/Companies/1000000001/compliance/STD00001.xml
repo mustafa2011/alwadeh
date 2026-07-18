@@ -15,9 +15,9 @@
     </ext:UBLExtensions>
     <cbc:ProfileID>reporting:1.0</cbc:ProfileID>
     <cbc:ID>STD00001</cbc:ID>
-    <cbc:UUID>b15687b7-fa6b-42a3-9f86-58ac403ae08f</cbc:UUID>
+    <cbc:UUID>debcb1c8-8944-48d4-9986-98d9daad9811</cbc:UUID>
     <cbc:IssueDate>2026-07-17</cbc:IssueDate>
-    <cbc:IssueTime>00:08:02Z</cbc:IssueTime>
+    <cbc:IssueTime>01:46:35Z</cbc:IssueTime>
     <cbc:InvoiceTypeCode name="0100000">388</cbc:InvoiceTypeCode>
     <cbc:DocumentCurrencyCode>SAR</cbc:DocumentCurrencyCode>
     <cbc:TaxCurrencyCode>SAR</cbc:TaxCurrencyCode>
