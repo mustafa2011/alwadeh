@@ -32,66 +32,8 @@ class CertificateService
      */
     protected string $companyPath = '';
 
-    public function __construct()
-    {
-    }
-
-    /**
-     * Load current company and all required files.
-     *
-     * @throws Exception
-     */
-    private function loadCurrentCompany(): void
-    {
-        $currentCompanyFile = getCurrentCompanyStorageFile();
-
-        if (!file_exists($currentCompanyFile)) {
-            throw new Exception('Current company file not found.');
-        }
-
-        $currentCompany = json_decode(file_get_contents($currentCompanyFile), true);
-
-        if (
-            !is_array($currentCompany)
-            || empty($currentCompany['crn'])
-        ) {
-            throw new Exception('Invalid current company.');
-        }
-
-        $crn = $currentCompany['crn'];
-
-        $this->companyPath = getCompanyPath($crn);
-
-        $this->company = loadJsonFile(
-            getCompanyFile($crn, 'company.json')
-        );
-
-        $settingsFile = getCompanyFile($crn, 'certificate_settings.json');
-
-        $this->settings = file_exists($settingsFile)
-            ? loadJsonFile($settingsFile)
-            : [];
-
-        $credentialsFile = getCompanyFile(
-            $crn,
-            'production_credentials.json'
-        );
-
-        $this->productionCredentials = file_exists($credentialsFile)
-            ? loadJsonFile($credentialsFile)
-            : [];
-
-        $complianceFile = getCompanyFile(
-            $crn,
-            'ZATCA_certificate_data.json'
-        );
-        
-        $this->complianceCredentials = file_exists($complianceFile)
-            ? loadJsonFile($complianceFile)
-            : [];
-
-    }
-
+    public function __construct() {}
+    
     /**
      * Backup file if it exists.
      *
@@ -136,30 +78,18 @@ class CertificateService
         bool $backupProductionCredentials = false,
         bool $backupComplianceCredentials = false
     ): void {
-
+    
         if ($backupCsr) {
             $this->backupFile(
                 getCompanyFile($this->company['crn'], 'certificate.csr')
             );
         }
-
+    
         if ($backupPrivateKey) {
             $this->backupFile(
                 getCompanyFile($this->company['crn'], 'private.pem')
             );
-        }
-
-        if ($backupProductionCredentials) {
-            $this->backupFile(
-                getCompanyFile($this->company['crn'], 'production_credentials.json')
-            );
-        }
-
-        if ($backupComplianceCredentials) {
-            $this->backupFile(
-                getCompanyFile($this->company['crn'], 'ZATCA_certificate_data.json')
-            );
-        }
+        }    
     }
 
     private function getCsrPath(): string
@@ -167,10 +97,7 @@ class CertificateService
         return getCompanyFile($this->company['crn'], 'certificate.csr');
     }
 
-    private function getProductionCredentialsPath(): string
-    {
-        return getCompanyFile($this->company['crn'], 'production_credentials.json');
-    }
+
 
     /**
      * Generate CSR and Private Key.
@@ -181,30 +108,36 @@ class CertificateService
      */
     public function generateCSR(array $data): array
     {
-        initializeCompany([
+        $company = initializeCompany([
             'crn'          => $data['crn'] ?? '',
             'vat'          => $data['organization_identifier'] ?? '',
             'company_name' => $data['organization_name'] ?? '',
             'branch_name'  => $data['organizational_unit_name'] ?? '',
             'environment'  => $data['environment'] ?? 'nonprod'
         ]);
+        
+        setCurrentCompany($data['crn']);
+        
+        $this->company = loadCurrentCompany();        
 
-        // إعادة تحميل بيانات الشركة بعد initializeCompany
-        $this->loadCurrentCompany();
+        syncCertificateCompanyData(
+            (int)$this->company['id'],
+            $data
+        );
 
         $environment = $data['environment'] ?? 'nonprod';
-
+    
         $uuid = generateUUID();
-
+    
         $commonName = getCommonNameByEnvironment($environment);
-
+    
         $csrPath = getCSRFile();
         $keyPath = getPrivateKeyFile();
         $settingPath = getCertificateSettingsFile();
-
-        // أخذ نسخة احتياطية إن كانت الملفات موجودة
+        
+        // Take backup if certificate files exist
         $this->backupCertificateFiles();
-
+    
         $this->buildCertificate(
             $data,
             $uuid,
@@ -212,42 +145,42 @@ class CertificateService
             $csrPath,
             $keyPath
         );
-
+    
         if (!file_exists($csrPath)) {
             throw new Exception('CSR file was not created.');
         }
-
+    
         if (!file_exists($keyPath)) {
             throw new Exception('Private key file was not created.');
         }
-
+    
         $settings = [
-            'environment'        => $environment,
-            'vat_number'         => $data['organization_identifier'],
-            'crn'                => $data['crn'],
-            'organization_name'  => $data['organization_name'],
-            'branch_name'        => $data['organizational_unit_name'],
-            'address'            => $data['address'],
-            'street'             => $data['street'],
-            'building_number'    => $data['building_number'],
-            'subdivision'        => $data['subdivision'],
-            'city'               => $data['city'],
-            'postal_zone'        => $data['postal_zone'],
-            'business_category'  => $data['business_category'],
-            'invoice_type'       => $data['invoice_type'],
-            'common_name'        => $commonName,
-            'serial_1'           => $data['serial_1'],
-            'serial_2'           => $data['serial_2'],
-            'generated_uuid'     => $uuid,
-            'generated_at'       => date('Y-m-d H:i:s')
+            'environment'       => $environment,
+            'vat_number'        => $company['tax_scheme']['company_id'] ?? '',
+            'crn'               => $company['commercial_registration_number'] ?? '',
+            'organization_name' => $company['legal_entity']['registration_name'] ?? '',
+            'branch_name'       => $data['organizational_unit_name'],
+            'address'           => $data['address'],
+            'street'            => $company['address']['street_name'] ?? '',
+            'building_number'   => $company['address']['building_number'] ?? '',
+            'subdivision'       => $company['address']['city_subdivision_name'] ?? '',
+            'city'              => $company['address']['city_name'] ?? '',
+            'postal_zone'       => $company['address']['postal_zone'] ?? '',
+            'business_category' => $data['business_category'],
+            'invoice_type'      => $data['invoice_type'],
+            'common_name'       => $commonName,
+            'serial_1'          => $data['serial_1'],
+            'serial_2'          => $data['serial_2'],
+            'generated_uuid'    => $uuid,
+            'generated_at'      => date('Y-m-d H:i:s')
         ];
-
+    
         saveJsonFile($settingPath, $settings);
-
+    
         updateCompanyStatus('csr_generated');
-
+    
         $this->settings = $settings;
-
+    
         return [
             'success' => true,
             'message' => 'Certificate generated successfully.'
@@ -297,49 +230,59 @@ class CertificateService
         if (trim($otp) === '') {
             throw new Exception('OTP is required.');
         }
-
-        $this->loadCurrentCompany();
-
-        $environment = getApiEnvironment();
-
-        $csrPath = getOutputFile('certificate.csr');
-
+    
+        $this->company = loadCurrentCompany();
+   
+        if (empty($this->company)) {
+            throw new Exception('No current company selected.');
+        }
+    
+        $csrPath = getCSRFile();
+    
         if (!file_exists($csrPath)) {
             throw new Exception(
-                'certificate.csr not found. Please generate the certificate first.'
+                'certificate.csr not found. Please generate the CSR first.'
             );
         }
-
-        $zatcaClient = new ZatcaAPI($environment);
-
-        $csr = $zatcaClient->loadCSRFromFile($csrPath);
-
-        $result = $zatcaClient->requestComplianceCertificate(
+    
+        $environment = getApiEnvironment();
+    
+        $api = new ZatcaAPI($environment);
+    
+        $csr = $api->loadCSRFromFile($csrPath);
+    
+        $result = $api->requestComplianceCertificate(
             $csr,
             trim($otp)
         );
-
-        $outputFile = getComplianceCertificateFile();
-
-        $zatcaClient->saveToJson(
-            $result->getCertificate(),
-            $result->getSecret(),
-            $result->getRequestId(),
-            $outputFile
+    
+    
+        $this->backupCertificateFiles(
+            false,
+            false,
+            false,
+            true
         );
-
+        
+        $privateKey = file_get_contents(getPrivateKeyFile());
+        
+        saveComplianceCertificate(
+            $result,
+            $csr,
+            $privateKey
+        );
+    
         updateCompanyStatus(COMPANY_STATUS_COMPLIANCE);
-
+    
         updateCurrentCompany([
             'last_request_id' => $result->getRequestId()
         ]);
-
+    
         return [
             'success' => true,
             'message' => 'Compliance certificate requested successfully.',
             'data' => [
-                'request_id' => $result->getRequestId(),
-                'output_file' => basename($outputFile)
+                'request_id' => $result->getRequestId()
             ]
         ];
     }
@@ -350,15 +293,18 @@ class CertificateService
      */
     public function runComplianceCheck(): array
     {
-        $settings    = loadCertificateSettings();
+        $company = loadCurrentCompany();
 
         $credentials = loadComplianceCredentials();
-    
+        
         $environment = getApiEnvironment();
-    
-        $supplier = buildSupplier($settings);
-    
+        
+        $supplier = buildSupplier($company);
+        
         $privateKey = loadPrivateKey();
+        
+
+
     
         $outputDirectory = getComplianceOutputDirectory();
     
@@ -413,13 +359,9 @@ class CertificateService
         }
     
         $production = requestProductionCertificate(
-    
+            
             $api,
-    
-            $credentials,
-    
-            getProductionCredentialsFile()
-    
+            $credentials
         );
 
         return [
@@ -441,7 +383,17 @@ class CertificateService
      */
     public function generateRenewCSR(): array
     {
-        $this->loadCurrentCompany();
+        $company = initializeCompany([
+            'crn'          => $data['crn'] ?? '',
+            'vat'          => $data['organization_identifier'] ?? '',
+            'company_name' => $data['organization_name'] ?? '',
+            'branch_name'  => $data['organizational_unit_name'] ?? '',
+            'environment'  => $data['environment'] ?? 'nonprod'
+        ]);
+        
+        // setCurrentCompany($data['crn']);
+        
+        $company = loadCurrentCompany();        
 
         if (empty($this->productionCredentials['certificate'])) {
             throw new Exception(
@@ -513,60 +465,56 @@ class CertificateService
      * @param string $otp
      * @return array
      * @throws Exception
+     * 
      */
     public function renewProductionCertificate(string $otp): array
     {
-        $this->loadCurrentCompany();
 
         if (trim($otp) === '') {
             throw new Exception('OTP is required.');
         }
-
-        if (empty($this->productionCredentials['certificate'])) {
-            throw new Exception('Production certificate not found.');
-        }
-
-        if (empty($this->productionCredentials['secret'])) {
-            throw new Exception('Production secret not found.');
-        }
-
+    
+        $this->company = loadCurrentCompany();
+    
+        $credentials = loadComplianceCredentials();
+    
         $csrPath = $this->getCsrPath();
-
+    
         if (!file_exists($csrPath)) {
             throw new Exception('Renewal CSR not found.');
         }
-
+    
         $csr = file_get_contents($csrPath);
-
+    
         if ($csr === false) {
             throw new Exception('Unable to read Renewal CSR.');
         }
-
+    
         $api = new ZatcaAPI(getApiEnvironment());
-
+    
         $result = $api->renewProductionCertificate(
-            $this->productionCredentials['certificate'],
-            $this->productionCredentials['secret'],
+            $credentials['binary_security_token'],
+            $credentials['secret'],
             $csr,
             trim($otp)
         );
-
+    
         $this->backupCertificateFiles(
             false,
             false,
-            true);
-
-        $api->saveToJson(
+            true
+        );
+    
+        saveProductionCredentials(
             $result->getCertificate(),
             $result->getSecret(),
-            $result->getRequestId(),
-            $this->getProductionCredentialsPath()
+            $result->getRequestId()
         );
-
+    
         updateCurrentCompany([
             'last_request_id' => $result->getRequestId()
         ]);
-
+    
         return [
             'success' => true,
             'message' => 'Production certificate renewed successfully.',
@@ -574,5 +522,6 @@ class CertificateService
                 'request_id' => $result->getRequestId()
             ]
         ];
-    }    
+    }
+
 }

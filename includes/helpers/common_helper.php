@@ -12,8 +12,8 @@
  * - Common utility functions
  */
 
-use Saleh7\Zatca\Exceptions\ZatcaApiException;
-use Saleh7\Zatca\CertificateBuilder;
+ 
+ use Saleh7\Zatca\CertificateBuilder;
 
 
 if (!function_exists('jsonResponse')) {

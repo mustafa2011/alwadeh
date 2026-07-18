@@ -3,13 +3,13 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Jul 13, 2026 at 08:47 PM
+-- Generation Time: Jul 17, 2026 at 11:38 PM
 -- Server version: 8.4.3
 -- PHP Version: 8.1.32
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
-SET time_zone = "+03:00";
+SET time_zone = "+00:00";
 
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
@@ -34,12 +34,16 @@ CREATE TABLE `companies` (
   `registration_name` varchar(255) DEFAULT NULL,
   `commercial_registration_number` varchar(100) DEFAULT NULL,
   `vat_number` varchar(15) DEFAULT NULL,
+  `environment` enum('nonprod','simulation','production') NOT NULL DEFAULT 'nonprod',
   `company_type` enum('seller','buyer','both') DEFAULT 'seller',
   `currency_code` varchar(3) DEFAULT 'SAR',
   `country_code` char(2) DEFAULT 'SA',
   `status` tinyint(1) DEFAULT '1',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `csr_generated` tinyint(1) DEFAULT '0',
+  `compliance_certificate` tinyint(1) DEFAULT '0',
+  `production_certificate` tinyint(1) DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
@@ -53,11 +57,10 @@ CREATE TABLE `company_address` (
   `company_id` bigint UNSIGNED NOT NULL,
   `street_name` varchar(255) DEFAULT NULL,
   `building_number` varchar(50) DEFAULT NULL,
-  `plot_identification` varchar(50) DEFAULT NULL,
+  `city_subdivision_name` varchar(100) DEFAULT NULL,
   `city_name` varchar(100) DEFAULT NULL,
   `postal_zone` varchar(20) DEFAULT NULL,
-  `country_subentity` varchar(100) DEFAULT NULL,
-  `country_code` char(2) DEFAULT 'SA',
+  `country_identification_code` char(2) DEFAULT 'SA',
   `address_type` enum('main','billing','shipping') DEFAULT 'main',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -147,7 +150,7 @@ CREATE TABLE `company_party` (
   `party_identification_scheme` varchar(50) DEFAULT NULL,
   `endpoint_id` varchar(100) DEFAULT NULL,
   `endpoint_scheme` varchar(50) DEFAULT NULL,
-  `party_name` varchar(255) NOT NULL,
+  `name` varchar(255) NOT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -196,7 +199,7 @@ CREATE TABLE `company_tax_scheme` (
   `id` bigint UNSIGNED NOT NULL,
   `company_id` bigint UNSIGNED NOT NULL,
   `tax_scheme_id` varchar(50) DEFAULT 'VAT',
-  `vat_number` varchar(50) NOT NULL,
+  `company_id_value` varchar(50) NOT NULL,
   `tax_category_id` varchar(10) DEFAULT 'S',
   `tax_percent` decimal(5,2) DEFAULT '15.00',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
@@ -215,7 +218,6 @@ CREATE TABLE `company_zatca_certificates` (
   `certificate_type` enum('compliance','production') NOT NULL,
   `certificate_name` varchar(255) DEFAULT NULL,
   `certificate_serial` varchar(255) DEFAULT NULL,
-  `certificate_content` longtext,
   `private_key_content` longtext,
   `csr_content` longtext,
   `secret_key` varchar(255) DEFAULT NULL,
@@ -428,11 +430,13 @@ CREATE TABLE `invoices` (
   `document_currency_code` char(3) DEFAULT 'SAR',
   `tax_currency_code` char(3) DEFAULT 'SAR',
   `payment_status` enum('unpaid','partial','paid') DEFAULT 'unpaid',
-  `invoice_status` enum('draft','signed','reported','cleared','rejected') DEFAULT 'draft',
+  `invoice_status` enum('draft','generated','signed','reported','cleared','rejected') DEFAULT 'draft',
   `icv` bigint DEFAULT '0',
   `previous_invoice_hash` text,
+  `invoice_hash` varchar(255) DEFAULT NULL,
   `qr_code` text,
   `xml_file_path` varchar(500) DEFAULT NULL,
+  `signed_xml_file_path` varchar(500) DEFAULT NULL,
   `pdf_file_path` varchar(500) DEFAULT NULL,
   `billing_reference` varchar(100) DEFAULT NULL,
   `original_invoice_id` bigint UNSIGNED DEFAULT NULL,
@@ -1034,13 +1038,6 @@ CREATE TABLE `users` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
---
--- Dumping data for table `users`
---
-
-INSERT INTO `users` (`id`, `username`, `password_hash`, `full_name`, `email`, `user_role`, `is_active`, `last_login`, `created_at`, `updated_at`) VALUES
-(1, 'admin', '$2y$10$P.pfeyzVKAjAeGitUs.6dOMOgO.dyZhbpXf7bq4AfLSgdK0YBnt6G', 'Systm Administrator', 'mustafa2011@gmail.com', 'admin', 1, NULL, '2026-07-13 20:34:27', '2026-07-13 20:34:27');
-
 -- --------------------------------------------------------
 
 --
@@ -1048,22 +1045,6 @@ INSERT INTO `users` (`id`, `username`, `password_hash`, `full_name`, `email`, `u
 -- (See below for the actual view)
 --
 CREATE TABLE `v_company_profile` (
-`company_id` bigint unsigned
-,`company_name` varchar(255)
-,`commercial_registration_number` varchar(100)
-,`vat_number` varchar(15)
-,`party_id` bigint unsigned
-,`street_name` varchar(255)
-,`building_number` varchar(50)
-,`city_name` varchar(100)
-,`postal_zone` varchar(20)
-,`country_code` char(2)
-,`tax_scheme_id` varchar(50)
-,`registration_name` varchar(255)
-,`telephone` varchar(50)
-,`electronic_mail` varchar(255)
-,`environment` enum('simulation','compliance','production')
-,`zatca_client_id` varchar(255)
 );
 
 -- --------------------------------------------------------
@@ -1073,19 +1054,19 @@ CREATE TABLE `v_company_profile` (
 -- (See below for the actual view)
 --
 CREATE TABLE `v_customer_profile` (
-`customer_id` bigint unsigned
-,`customer_name` varchar(255)
-,`vat_number` varchar(15)
-,`party_id` bigint unsigned
-,`street_name` varchar(255)
-,`building_number` varchar(50)
+`building_number` varchar(50)
 ,`city_name` varchar(100)
-,`postal_zone` varchar(20)
 ,`country_code` char(2)
-,`tax_scheme_id` varchar(50)
-,`registration_name` varchar(255)
-,`telephone` varchar(50)
+,`customer_id` bigint unsigned
+,`customer_name` varchar(255)
 ,`electronic_mail` varchar(255)
+,`party_id` bigint unsigned
+,`postal_zone` varchar(20)
+,`registration_name` varchar(255)
+,`street_name` varchar(255)
+,`tax_scheme_id` varchar(50)
+,`telephone` varchar(50)
+,`vat_number` varchar(15)
 );
 
 -- --------------------------------------------------------
@@ -1095,21 +1076,21 @@ CREATE TABLE `v_customer_profile` (
 -- (See below for the actual view)
 --
 CREATE TABLE `v_invoice_header` (
-`invoice_id` bigint unsigned
-,`invoice_uuid` char(36)
+`company_id` bigint unsigned
+,`currency_code` char(3)
+,`customer_id` bigint unsigned
+,`invoice_id` bigint unsigned
 ,`invoice_number` varchar(100)
+,`invoice_status` enum('draft','generated','signed','reported','cleared','rejected')
 ,`invoice_type` enum('invoice','credit_note','debit_note')
+,`invoice_uuid` char(36)
 ,`issue_date` datetime
 ,`issue_time` datetime
-,`currency_code` char(3)
-,`company_id` bigint unsigned
-,`customer_id` bigint unsigned
-,`invoice_status` enum('draft','signed','reported','cleared','rejected')
 ,`line_extension_amount` decimal(15,2)
-,`tax_exclusive_amount` decimal(15,2)
-,`tax_inclusive_amount` decimal(15,2)
 ,`payable_amount` decimal(15,2)
 ,`tax_amount` decimal(15,2)
+,`tax_exclusive_amount` decimal(15,2)
+,`tax_inclusive_amount` decimal(15,2)
 );
 
 -- --------------------------------------------------------
@@ -1119,18 +1100,18 @@ CREATE TABLE `v_invoice_header` (
 -- (See below for the actual view)
 --
 CREATE TABLE `v_invoice_lines` (
-`invoice_line_id` bigint unsigned
-,`invoice_id` bigint unsigned
-,`line_number` int
-,`quantity` decimal(15,3)
-,`unit_code` varchar(20)
-,`line_extension_amount` decimal(15,2)
+`invoice_id` bigint unsigned
+,`invoice_line_id` bigint unsigned
+,`item_description` text
 ,`item_id` bigint unsigned
 ,`item_name` varchar(255)
-,`item_description` text
+,`line_extension_amount` decimal(15,2)
+,`line_number` int
+,`quantity` decimal(15,3)
+,`tax_amount` decimal(15,2)
 ,`tax_category_id` varchar(10)
 ,`tax_percent` decimal(5,2)
-,`tax_amount` decimal(15,2)
+,`unit_code` varchar(20)
 );
 
 -- --------------------------------------------------------
@@ -1140,10 +1121,10 @@ CREATE TABLE `v_invoice_lines` (
 -- (See below for the actual view)
 --
 CREATE TABLE `v_invoice_payment` (
-`invoice_id` bigint unsigned
-,`payment_means_code` varchar(20)
+`instruction_note` text
+,`invoice_id` bigint unsigned
 ,`payment_due_date` date
-,`instruction_note` text
+,`payment_means_code` varchar(20)
 );
 
 -- --------------------------------------------------------
@@ -1153,10 +1134,10 @@ CREATE TABLE `v_invoice_payment` (
 -- (See below for the actual view)
 --
 CREATE TABLE `v_invoice_status_history` (
-`invoice_id` bigint unsigned
-,`event_type` varchar(100)
+`created_at` timestamp
 ,`event_message` text
-,`created_at` timestamp
+,`event_type` varchar(100)
+,`invoice_id` bigint unsigned
 );
 
 -- --------------------------------------------------------
@@ -1166,12 +1147,12 @@ CREATE TABLE `v_invoice_status_history` (
 -- (See below for the actual view)
 --
 CREATE TABLE `v_invoice_zatca_documents` (
-`invoice_id` bigint unsigned
+`created_at` timestamp
+,`file_path` varchar(500)
+,`file_type` enum('certificate','private_key','csr','invoice_xml','signed_xml','qr_image','invoice_pdf','attachment','zatca_response','other')
+,`invoice_id` bigint unsigned
 ,`invoice_number` varchar(100)
 ,`storage_id` bigint unsigned
-,`file_type` enum('certificate','private_key','csr','invoice_xml','signed_xml','qr_image','invoice_pdf','attachment','zatca_response','other')
-,`file_path` varchar(500)
-,`created_at` timestamp
 );
 
 -- --------------------------------------------------------
@@ -1228,6 +1209,7 @@ ALTER TABLE `companies`
 --
 ALTER TABLE `company_address`
   ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_company_address_company` (`company_id`),
   ADD KEY `idx_company_address_company` (`company_id`);
 
 --
@@ -1289,7 +1271,8 @@ ALTER TABLE `company_storage_settings`
 --
 ALTER TABLE `company_tax_scheme`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_company_vat_number` (`vat_number`),
+  ADD UNIQUE KEY `uq_company_tax_scheme_company` (`company_id`),
+  ADD KEY `idx_company_vat_number` (`company_id_value`),
   ADD KEY `idx_company_tax_scheme_company` (`company_id`);
 
 --
@@ -1988,7 +1971,7 @@ ALTER TABLE `system_settings`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `zatca_api_logs`

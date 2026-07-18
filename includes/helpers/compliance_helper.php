@@ -24,48 +24,44 @@ if (!function_exists('requestProductionCertificate')) {
      *
      * @param ZatcaAPI $api
      * @param array    $credentials
-     * @param string   $outputFile
+     * 
      *
      * @return array
      * @throws ZatcaApiException
      */
     function requestProductionCertificate(
         $api,
-        $credentials,
-        $outputFile
+        $credentials
     ) {
-
+    
         $result = $api->requestProductionCertificate(
-
-            $credentials['certificate'],
+    
+            $credentials['binary_security_token'],
             $credentials['secret'],
-            $credentials['requestId']
-
+            $credentials['request_id']
+    
         );
-
-        $api->saveToJson(
-
+    
+        saveProductionCredentials(
+    
             $result->getCertificate(),
             $result->getSecret(),
-            $result->getRequestId(),
-            $outputFile
-
+            $result->getRequestId()
+    
         );
-        
+    
         updateCompanyStatus(COMPANY_STATUS_PRODUCTION);
-
+    
         return [
-
+    
             'certificate' => $result->getCertificate(),
-
+    
             'secret' => $result->getSecret(),
-
+    
             'requestId' => $result->getRequestId(),
-
-            'outputFile' => $outputFile,
-
+    
         ];
-
+    
     }
 }
 
@@ -115,7 +111,7 @@ if (!function_exists('signInvoice')) {
         }
 
         $certificate = new Certificate(
-            $credentials['certificate'],
+            $credentials['binary_security_token'],
             $privateKey,
             $credentials['secret']
         );
@@ -174,7 +170,7 @@ if (!function_exists('validateComplianceInvoice')) {
 
         $result = $api->validateInvoiceCompliance(
 
-            $credentials['certificate'],
+            $credentials['binary_security_token'],
 
             $credentials['secret'],
 

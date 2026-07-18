@@ -19,51 +19,26 @@ use App\Core\Database;
 
 function getAllCompanies(): array
 {
-    $companies = [];
+    $db = Database::getConnection();
 
-    $companiesPath = getCompaniesPath();
+    $sql = "
+        SELECT
+            c.id,
+            c.crn,
+            c.vat,
+            c.environment,
+            c.is_active,
+            cp.company_name,
+            cp.branch_name,
+            c.created_at,
+            c.updated_at
+        FROM companies c
+        LEFT JOIN company_party cp
+            ON cp.company_id = c.id
+        ORDER BY cp.company_name ASC
+    ";
 
-    if (!is_dir($companiesPath)) {
-        return [];
-    }
-
-    $folders = scandir($companiesPath);
-
-    foreach ($folders as $folder) {
-
-        if ($folder === '.' || $folder === '..') {
-            continue;
-        }
-
-        $companyPath = getCompanyPath($folder);
-
-        if (!is_dir($companyPath)) {
-            continue;
-        }
-
-        $companyFile = getCompanyJsonFile($folder);
-
-        if (!file_exists($companyFile)) {
-            continue;
-        }
-
-        $company = loadJsonFile($companyFile);
-
-        if (!is_array($company)) {
-            continue;
-        }
-
-        $companies[] = $company;
-    }
-
-    usort($companies, function ($a, $b) {
-        return strcmp(
-            $a['company_name'] ?? '',
-            $b['company_name'] ?? ''
-        );
-    });
-
-    return $companies;
+    return $db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
 }
 
 /**
@@ -78,7 +53,18 @@ function getCompanyJsonFile(string $crn): string
  */
 function companyExists(string $crn): bool
 {
-    return file_exists(getCompanyJsonFile($crn));
+    $pdo = Database::getConnection();
+
+    $stmt = $pdo->prepare("
+        SELECT id 
+        FROM companies
+        WHERE commercial_registration_number = ?
+        LIMIT 1
+    ");
+
+    $stmt->execute([$crn]);
+
+    return (bool)$stmt->fetchColumn();
 }
 
 /**
@@ -86,47 +72,186 @@ function companyExists(string $crn): bool
  */
 function createCompany(array $data): bool
 {
+    $pdo = Database::getConnection();
+
     if (empty($data['crn'])) {
         return false;
     }
 
-    $crn = trim($data['crn']);
+    $userId = $_SESSION['user']['id'] ?? 0;
 
-    ensureCompanyDirectories($crn);
+    if ($userId <= 0) {
+        throw new Exception('User is not authenticated.');
+    }
 
-    $company = [
+    $pdo->beginTransaction();
 
-        'crn'               => $crn,
-        'vat'               => $data['vat'] ?? '',
-        'company_name'      => $data['company_name'] ?? '',
-        'branch_name'       => $data['branch_name'] ?? '',
-        'environment'       => $data['environment'] ?? 'noprod',
+    try {
 
-        'status' => [
-            'csr_generated'          => false,
-            'compliance_certificate' => false,
-            'production_certificate' => false,
-        ],
+        $stmt = $pdo->prepare("
+            INSERT INTO companies
+            (
+                user_id,
+                company_name,
+                registration_name,
+                commercial_registration_number,
+                vat_number,
+                company_type,
+                currency_code,
+                country_code,
+                environment
+            )
+            VALUES
+            (?,?,?,?,?,?,?,?,?)
+        ");
 
-        'created_at' => date('c'),
-        'updated_at' => date('c'),
-    ];
+        $stmt->execute([
+            $userId,
+            $data['company_name'] ?? '',
+            $data['company_name'] ?? '',
+            $data['crn'],
+            $data['vat'] ?? '',
+            'seller',
+            'SAR',
+            'SA',
+            $data['environment'] ?? 'nonprod'
+        ]);
 
-    saveCompany($crn, $company);
+        $companyId = (int)$pdo->lastInsertId();
 
-    return true;
+        try {
+            createCompanyParty($companyId, $data);
+        } catch (Throwable $e) {
+            throw new Exception("PARTY: ".$e->getMessage());
+        }
+        
+        try {
+            createCompanyAddress($companyId, $data);
+        } catch (Throwable $e) {
+            throw new Exception("ADDRESS: ".$e->getMessage());
+        }
+        
+        try {
+            createCompanyTaxScheme($companyId, $data);
+        } catch (Throwable $e) {
+            throw new Exception("TAX: ".$e->getMessage());
+        }
+        
+        try {
+            createCompanyLegalEntity($companyId, $data);
+        } catch (Throwable $e) {
+            throw new Exception("LEGAL: ".$e->getMessage());
+        }        
+
+        $pdo->commit();
+
+        return true;
+
+    } catch (Throwable $e) {
+
+        $pdo->rollBack();
+
+        throw $e;
+    }
+}
+function createCompanyParty(int $companyId, array $data): void
+{
+    $stmt = Database::getConnection()->prepare("
+        INSERT INTO company_party
+        (
+            company_id,
+            party_identification_id,
+            party_identification_scheme,
+            name
+        )
+        VALUES (?,?,?,?)
+    ");
+
+    $stmt->execute([
+        $companyId,
+        $data['crn'],
+        'CRN',
+        $data['company_name']
+    ]);
+}
+function createCompanyAddress(int $companyId, array $data): void
+{
+    $stmt = Database::getConnection()->prepare("
+        INSERT INTO company_address
+        (
+            company_id,
+            street_name,
+            building_number,
+            city_subdivision_name,
+            city_name,
+            postal_zone,
+            country_identification_code
+        )
+        VALUES (?,?,?,?,?,?,?)
+    ");
+
+    $stmt->execute([
+        $companyId,
+        $data['street'] ?? '',
+        $data['building_number'] ?? '',
+        $data['subdivision'] ?? '',
+        $data['city'] ?? '',
+        $data['postal_zone'] ?? '',
+        'SA'
+    ]);
+}
+function createCompanyTaxScheme(int $companyId, array $data): void
+{
+
+    $stmt = Database::getConnection()->prepare("
+        INSERT INTO company_tax_scheme
+        (
+            company_id,
+            tax_scheme_id,
+            company_id_value
+        )
+        VALUES (?,?,?)
+    ");
+
+    $stmt->execute([
+        $companyId,
+        'VAT',
+        $data['vat'] ?? ''
+    ]);
+}
+function createCompanyLegalEntity(int $companyId, array $data): void
+{
+    $stmt = Database::getConnection()->prepare("
+        INSERT INTO company_legal_entity
+        (
+            company_id,
+            registration_name,
+            company_id_value,
+            company_id_scheme
+        )
+        VALUES (?,?,?,?)
+    ");
+
+    $stmt->execute([
+        $companyId,
+        $data['company_name'] ?? '',
+        $data['crn'] ?? '',
+        'CRN'
+    ]);
 }
 
 /**
  * Load company.
  */
+
 function getCompany(string $crn): ?array
 {
-    if (!companyExists($crn)) {
-        return null;
-    }
+    $pdo = Database::getConnection();
 
-    return loadJsonFile(getCompanyJsonFile($crn));
+    $stmt = $pdo->prepare("SELECT * FROM companies WHERE commercial_registration_number = ? LIMIT 1");
+    $stmt->execute([$crn]);
+
+    return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
 }
 
 /**
@@ -134,13 +259,10 @@ function getCompany(string $crn): ?array
  */
 function saveCompany(string $crn, array $company): bool
 {
+
     $company['updated_at'] = date('c');
 
-    saveJsonFile(
-        getCompanyJsonFile($crn),
-        $company
-    );
-
+    // Sync company to database
     syncCompanyToDatabase($crn, $company);
 
     return true;
@@ -197,47 +319,55 @@ function deleteDirectoryRecursive(string $dir): void
  * @param string $crn
  * @return bool
  */
-function setCurrentCompany(string $crn): bool
+// function setCurrentCompany(string $crn): bool
+// {
+//     if (!companyExists($crn)) {
+//         return false;
+//     }
+
+//     $_SESSION['current_company'] = $crn;
+
+//     saveJsonFile(
+//         getCurrentCompanyStorageFile(),
+//         [
+//             'crn'        => $crn,
+//             'updated_at' => date('c')
+//         ]
+//     );
+
+//     return true;
+// }
+function setCurrentCompany(string $crn): void
 {
-    if (!companyExists($crn)) {
-        return false;
-    }
-
-    $_SESSION['current_company'] = $crn;
-
-    saveJsonFile(
-        getCurrentCompanyStorageFile(),
-        [
-            'crn'        => $crn,
-            'updated_at' => date('c')
-        ]
-    );
-
-    return true;
+    $_SESSION['company_crn'] = $crn;
 }
+
 
 /**
  * Get current company CRN.
  */
+// function getCurrentCompany(): ?string
+// {
+//     $file = getCurrentCompanyStorageFile();
+
+//     if (!file_exists($file)) {
+//         return null;
+//     }
+
+//     $data = loadJsonFile($file);
+
+//     if (empty($data['crn'])) {
+//         return null;
+//     }
+
+//     $_SESSION['current_company'] = $data['crn'];
+
+//     return $data['crn'];
+// }
 function getCurrentCompany(): ?string
 {
-    $file = getCurrentCompanyStorageFile();
-
-    if (!file_exists($file)) {
-        return null;
-    }
-
-    $data = loadJsonFile($file);
-
-    if (empty($data['crn'])) {
-        return null;
-    }
-
-    $_SESSION['current_company'] = $data['crn'];
-
-    return $data['crn'];
+    return $_SESSION['company_crn'] ?? null;
 }
-
 /**
  * Get current company information.
  */
@@ -259,11 +389,11 @@ function clearCurrentCompany(): void
 {
     unset($_SESSION['current_company']);
 
-    $file = getCurrentCompanyStorageFile();
+    // $file = getCurrentCompanyStorageFile();
 
-    if (file_exists($file)) {
-        unlink($file);
-    }
+    // if (file_exists($file)) {
+    //     unlink($file);
+    // }
 }
 
 /**
@@ -355,14 +485,13 @@ function initializeCompany(array $data): array
         createCompany($data);
     }
 
-    setCurrentCompany($crn);
+    // setCurrentCompany($crn);
 
     $company = getCompany($crn);
 
     if (!$company) {
-        throw new Exception('Unable to load company.');
+        throw new Exception("Company not found: {$crn}");
     }
-
     return $company;
 }
 
@@ -385,6 +514,13 @@ function updateCompany(string $crn, array $data): bool
         return false;
     }
 
+    $companyId = (int)$company['id'];
+
+    $company['party'] = getCompanyParty($companyId) ?? [];
+    $company['address'] = getCompanyAddress($companyId) ?? [];
+    $company['tax_scheme'] = getCompanyTaxScheme($companyId) ?? [];
+    $company['legal_entity'] = getCompanyLegalEntity($companyId) ?? [];
+
     $protectedFields = [
         'crn',
         'created_at',
@@ -392,11 +528,9 @@ function updateCompany(string $crn, array $data): bool
     ];
 
     foreach ($data as $key => $value) {
-
         if (in_array($key, $protectedFields, true)) {
             continue;
         }
-
         $company[$key] = $value;
     }
 
@@ -431,31 +565,38 @@ function updateCompanyStatus(string $status, bool $value = true): bool
         return false;
     }
 
-    $company = getCompany($crn);
+    $pdo = Database::getConnection();
 
-    if (!$company) {
+    $column = match ($status) {
+        'csr_generated' => 'csr_generated',
+        'compliance_certificate' => 'compliance_certificate',
+        'production_certificate' => 'production_certificate',
+        default => null
+    };
+
+    if (!$column) {
         return false;
     }
 
-    if (!isset($company['status'])) {
-        $company['status'] = [];
-    }
+    $stmt = $pdo->prepare("
+        UPDATE companies
+        SET {$column} = ?
+        WHERE commercial_registration_number = ?
+    ");
 
-    $company['status'][$status] = $value;
-    $company['updated_at'] = date('c');
-
-    saveJsonFile(getCompanyJsonFile($crn), $company);
-
-    return true;
+    return $stmt->execute([
+        $value ? 1 : 0,
+        $crn
+    ]);
 }
 
 /**
  * Returns current company storage file.
  */
-function getCurrentCompanyFile(): string
-{
-    return getCurrentCompanyStorageFile();
-}
+// function getCurrentCompanyFile(): string
+// {
+//     return getCurrentCompanyStorageFile();
+// }
 
 /**
  * Validate company data.
@@ -511,12 +652,41 @@ function syncCompanyToDatabase(string $crn, array $company): int
         WHERE commercial_registration_number = ?
         LIMIT 1
     ");
-
     $stmt->execute([$crn]);
-
     $companyId = $stmt->fetchColumn();
 
-    if ($companyId) {
+    if (!$companyId) {
+
+        $stmt = $pdo->prepare("
+            INSERT INTO companies
+            (
+                user_id,
+                company_name,
+                registration_name,
+                commercial_registration_number,
+                vat_number,
+                company_type,
+                currency_code,
+                country_code,
+                status
+            )
+            VALUES (?,?,?,?,?,?,?,?,1)
+        ");
+
+        $stmt->execute([
+            $userId,
+            $company['company_name'] ?? '',
+            $company['company_name'] ?? '',
+            $crn,
+            $company['vat'] ?? null,
+            'seller',
+            'SAR',
+            'SA'
+        ]);
+
+        $companyId = (int)$pdo->lastInsertId();
+
+    } else {
 
         $stmt = $pdo->prepare("
             UPDATE companies
@@ -534,39 +704,244 @@ function syncCompanyToDatabase(string $crn, array $company): int
             $company['vat'] ?? null,
             $companyId
         ]);
-
-        return (int)$companyId;
     }
 
     $stmt = $pdo->prepare("
-        INSERT INTO companies
+        INSERT INTO company_party
         (
-            user_id,
-            company_name,
-            registration_name,
-            commercial_registration_number,
-            vat_number,
-            company_type,
-            currency_code,
-            country_code,
-            status
+            company_id,
+            party_identification_id,
+            party_identification_scheme,
+            name
         )
-        VALUES
-        (
-            ?,?,?,?,?,?,?,?,1
-        )
+        VALUES (?,?,?,?)
+        ON DUPLICATE KEY UPDATE
+            name = VALUES(name)
     ");
 
     $stmt->execute([
-        $userId,
-        $company['company_name'] ?? '',
+        $companyId,
+        $crn,
+        'CRN',
+        $company['company_name'] ?? ''
+    ]);
+
+    $stmt = $pdo->prepare("
+        INSERT INTO company_address
+        (
+            company_id,
+            street_name,
+            building_number,
+            city_subdivision_name,
+            city_name,
+            postal_zone,
+            country_identification_code
+        )
+        VALUES (?,?,?,?,?,?,?)
+        ON DUPLICATE KEY UPDATE
+            street_name = VALUES(street_name),
+            building_number = VALUES(building_number),
+            city_subdivision_name = VALUES(city_subdivision_name),
+            city_name = VALUES(city_name),
+            postal_zone = VALUES(postal_zone),
+            country_identification_code = VALUES(country_identification_code)
+        ");
+
+    $address = $company['address'] ?? [];
+    $stmt->execute([
+        $companyId,
+        $address['street_name'] ?? '',
+        $address['building_number'] ?? '',
+        $address['city_subdivision_name'] ?? '',
+        $address['city_name'] ?? '',
+        $address['postal_zone'] ?? '',
+        'SA'
+    ]);       
+
+    $stmt = $pdo->prepare("
+        INSERT INTO company_tax_scheme
+        (
+            company_id,
+            tax_scheme_id,
+            company_id_value
+        )
+        VALUES (?,?,?)
+        ON DUPLICATE KEY UPDATE
+            company_id_value = VALUES(company_id_value)
+    ");
+
+    $stmt->execute([
+        $companyId,
+        'VAT',
+        $company['tax_scheme']['company_id_value']
+            ?? $company['vat_number']
+            ?? $company['vat']
+            ?? ''
+    ]);
+
+    $stmt = $pdo->prepare("
+        INSERT INTO company_legal_entity
+        (
+            company_id,
+            registration_name,
+            company_id_value,
+            company_id_scheme
+        )
+        VALUES (?,?,?,?)
+        ON DUPLICATE KEY UPDATE
+            registration_name = VALUES(registration_name),
+            company_id_value = VALUES(company_id_value)
+    ");
+
+    $stmt->execute([
+        $companyId,
         $company['company_name'] ?? '',
         $crn,
-        $company['vat'] ?? null,
-        'seller',
-        'SAR',
+        'CRN'
+    ]);
+
+    return (int)$companyId;
+}
+
+function syncCertificateCompanyData(int $companyId, array $data): void
+{
+    $pdo = Database::getConnection();
+
+    $stmt = $pdo->prepare("
+        INSERT INTO company_address
+        (
+            company_id,
+            street_name,
+            building_number,
+            city_subdivision_name,
+            city_name,
+            postal_zone,
+            country_identification_code
+        )
+        VALUES (?,?,?,?,?,?,?)
+        ON DUPLICATE KEY UPDATE
+            street_name = VALUES(street_name),
+            building_number = VALUES(building_number),
+            city_subdivision_name = VALUES(city_subdivision_name),
+            city_name = VALUES(city_name),
+            postal_zone = VALUES(postal_zone)
+    ");
+
+    $stmt->execute([
+        $companyId,
+        $data['street'] ?? '',
+        $data['building_number'] ?? '',
+        $data['subdivision'] ?? '',
+        $data['city'] ?? '',
+        $data['postal_zone'] ?? '',
         'SA'
     ]);
 
-    return (int)$pdo->lastInsertId();
+    $stmt = $pdo->prepare("
+        UPDATE company_party
+        SET name = ?
+        WHERE company_id = ?
+    ");
+
+    $stmt->execute([
+        $data['organization_name'] ?? '',
+        $companyId
+    ]);
+
+    $stmt = $pdo->prepare("
+        UPDATE company_legal_entity
+        SET
+            registration_name = ?,
+            company_id_value = ?,
+            company_id_scheme = ?,
+            registration_address = ?
+        WHERE company_id = ?
+    ");
+
+    $stmt->execute([
+        $data['organization_name'] ?? '',
+        $data['organization_identifier'] ?? '',
+        'CRN',
+        ($data['building_number'] ?? '') . ', ' .
+        ($data['street'] ?? '') . ', ' .
+        ($data['city'] ?? '') . ', ' .
+        ($data['postal_zone'] ?? '') . ', SA',
+        $companyId
+    ]);
+
+    $stmt = $pdo->prepare("
+        UPDATE company_tax_scheme
+        SET company_id_value = ?
+        WHERE company_id = ?
+    ");
+
+    $stmt->execute([
+        $data['organization_identifier'] ?? '',
+        $companyId
+    ]);
+}
+
+function getCompanyParty(int $companyId): ?array
+{
+    $stmt = Database::getConnection()->prepare("SELECT * FROM company_party WHERE company_id = ? LIMIT 1");
+    $stmt->execute([$companyId]);
+    return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+}
+
+function getCompanyAddress(int $companyId): ?array
+{
+    $stmt = Database::getConnection()->prepare("SELECT * FROM company_address WHERE company_id = ? LIMIT 1");
+    $stmt->execute([$companyId]);
+    return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+}
+
+function getCompanyTaxScheme(int $companyId): ?array
+{
+    $stmt = Database::getConnection()->prepare("SELECT * FROM company_tax_scheme WHERE company_id = ? LIMIT 1");
+    $stmt->execute([$companyId]);
+    return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+}
+
+function getCompanyLegalEntity(int $companyId): ?array
+{
+    $stmt = Database::getConnection()->prepare("SELECT * FROM company_legal_entity WHERE company_id = ? LIMIT 1");
+    $stmt->execute([$companyId]);
+    return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+}
+
+/**
+ * Load current company and all required files.
+ *
+ * @throws Exception
+ */  
+function loadCurrentCompany(): array
+{
+    if (empty($_SESSION['company_crn'])) {
+        throw new Exception('No current company selected.');
+    }
+
+    $crn = trim($_SESSION['company_crn']);
+
+    $company = getCompany($crn);
+
+    if (!$company) {
+        throw new Exception("Company not found: {$crn}");
+    }
+
+    $company['crn'] = $company['commercial_registration_number'];
+    $company['vat'] = $company['vat_number'];
+    
+    if (!empty($company['tax_scheme']['company_id_value'])) {
+        $company['vat'] = $company['tax_scheme']['company_id_value'];
+    }
+
+
+    $companyId = (int)$company['id'];
+
+    $company['party'] = getCompanyParty($companyId) ?? [];
+    $company['address'] = getCompanyAddress($companyId) ?? [];
+    $company['tax_scheme'] = getCompanyTaxScheme($companyId) ?? [];
+    $company['legal_entity'] = getCompanyLegalEntity($companyId) ?? [];
+
+    return $company;
 }
