@@ -138,6 +138,7 @@ include '../includes/header.php';
                                                    inputmode="numeric"
                                                    autocomplete="one-time-code"
                                                    placeholder="Example: 123456"
+                                                   value="123456"
                                                    required>
 
                                             <div class="form-text">

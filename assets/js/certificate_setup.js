@@ -89,14 +89,22 @@ document.getElementById('generateCertificateForm').addEventListener('submit', fu
     Components.loadingButton(btn, true);
     btn.innerHTML = 'Generating...';
 
-    fetch('../Certificates/generate_certificate.php',{
+    fetch('../api/generate_certificate.php',{
 
         method:'POST',
 
         body:formData
 
     })
-    .then(response => response.json())
+    .then(async response => {
+        const result = await response.json();
+    
+        if (!response.ok) {
+            throw result;
+        }
+    
+        return result;
+    })
     .then(result => {
 
         Components.loadingButton(btn, false);
@@ -152,12 +160,11 @@ document.getElementById('generateCertificateForm').addEventListener('submit', fu
             <i class="bi bi-check2-circle me-1"></i>
             Generate Certificate
         `;
-        
         showAlert(
             'wizardMessage',
             'danger',
-            error
-        );
+            error.message ?? 'Unexpected error.'
+        );        
     
     });
 

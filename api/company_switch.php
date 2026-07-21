@@ -20,17 +20,17 @@ if (empty($crn)) {
     ], 400);
 }
 
-if (!companyExists($crn)) {
+if (!(new App\Repositories\CompanyStorageRepository())->companyExists($crn)) {
     jsonResponse([
         'success' => false,
         'message' => 'Company not found.'
     ], 404);
 }
 
-setCurrentCompany($crn);
+(new App\Repositories\CompanyStorageRepository())->setCurrentCompany($crn);
 
 jsonResponse([
     'success' => true,
     'message' => 'Current company updated successfully.',
-    'data' => getCurrentCompanyInfo()
+    'data' => (new App\Repositories\CompanyStorageRepository())->getCurrentCompanyInfo()
 ]);

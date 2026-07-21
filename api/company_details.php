@@ -1,16 +1,11 @@
 <?php
-/**
- * Company Details API
- *
- * Returns company information.
- */
 
 require_once __DIR__ . '/../includes/api_bootstrap.php';
 
 $crn = trim($_GET['crn'] ?? '');
 
 if (empty($crn)) {
-    $crn = getCurrentCompany();
+    $crn = (new App\Repositories\CompanyStorageRepository())->getCurrentCompany();
 }
 
 if (!$crn) {
@@ -20,7 +15,7 @@ if (!$crn) {
     ], 400);
 }
 
-$company = getCompany($crn);
+$company = (new App\Repositories\CompanyStorageRepository())->getCompany($crn);
 
 if (!$company) {
     jsonResponse([

@@ -2,7 +2,6 @@
 
 require_once __DIR__ . '/../../includes/api_bootstrap.php';
 
-use App\Services\InvoiceRepository;
 use App\Services\InvoiceService;
 
 try {
@@ -37,18 +36,14 @@ try {
     | 1. Save Invoice Draft
     |--------------------------------------------------------------------------
     */
+    $service = new InvoiceService();
 
-
-    $repository = new InvoiceRepository();
-
-    $invoiceId = $repository->create($invoiceData);
+    $result = $service->createInvoice($invoiceData);
     
     echo json_encode([
         'success' => true,
-        'message' => 'Invoice saved successfully.',
-        'data' => [
-            'invoice_id' => $invoiceId
-        ]
+        'message' => 'Invoice created successfully.',
+        'data' => $result
     ]);
     
     exit;

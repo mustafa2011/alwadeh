@@ -113,7 +113,7 @@ include '../includes/header.php';
                                         <i class="bi bi-question-circle-fill text-primary"
                                            data-bs-toggle="tooltip"
                                            data-bs-placement="right"
-                                           title="National Short Address consists of 5 characters">
+                                           title="National Short Address must contain 4 letters followed by 4 digits.">
                                         </i>
                                     </label>
                                     <input class="form-control" type="text" name="address" placeholder="Example: RHMA3184" value="RHMA3184" required>
@@ -126,8 +126,15 @@ include '../includes/header.php';
                                     <input class="form-control" type="text" name="street" placeholder="Example: King Fahad Road" value="TST 1" required>
                                 </div>
                                 <div class="col-md-4 mb-3">
-                                    <label class="form-label">Building Number</label>
-                                    <input class="form-control" type="text" name="building_number"placeholder="Example: 1234" value="1234" required>
+                                    <label class="form-label">
+                                        Building Number
+                                        <i class="bi bi-question-circle-fill text-primary"
+                                           data-bs-toggle="tooltip"
+                                           data-bs-placement="right"
+                                           title="Building number must match last 4 digint in National Short Address.">
+                                        </i>
+                                    </label>
+                                    <input class="form-control" type="text" name="building_number"placeholder="Example: 3184" value="3184" required>
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label">Subdivision</label>
@@ -146,13 +153,10 @@ include '../includes/header.php';
                                             <i class="bi bi-question-circle-fill text-primary"
                                                data-bs-toggle="tooltip"
                                                data-bs-placement="right"
-                                               title="Postal code consists of 5 digits">
+                                               title="Postal code must be exactly 5 digits.">
                                             </i>
                                     </label>
                                     <input class="form-control" type="text" name="postal_zone" placeholder="Example: 12345" value="12345" required>
-                                    <div class="form-text">
-                                        Postal code consists of 4 digits.
-                                    </div>
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label">Business Category</label>

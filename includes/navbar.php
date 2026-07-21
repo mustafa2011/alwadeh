@@ -12,7 +12,7 @@
 
         <div class="d-flex align-items-center ms-auto">
 
-            <?php if ($currentUser): ?>
+            <?php if (isset($currentUser)): ?>
 
                 <span class="me-3 text-white">
 

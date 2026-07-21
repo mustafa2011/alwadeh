@@ -13,7 +13,7 @@ if (!function_exists('getCSRFile')) {
      */
     function getCSRFile(): string
     {
-        return companyFile('certificate.csr');
+        return (new App\Repositories\CompanyStorageRepository())->companyFile('certificate.csr');
     }
 }
 
@@ -26,7 +26,7 @@ if (!function_exists('getPrivateKeyFile')) {
      */
     function getPrivateKeyFile(): string
     {
-        return companyFile('private.pem');
+        return (new App\Repositories\CompanyStorageRepository())->companyFile('private.pem');
     }
 }
 
@@ -39,7 +39,7 @@ if (!function_exists('getComplianceDirectory')) {
      */
     function getComplianceDirectory(): string
     {
-        return compliancePath();
+        return (new App\Repositories\CompanyStorageRepository())->compliancePath();
     }
 }
 
@@ -52,7 +52,7 @@ if (!function_exists('getInvoicesDirectory')) {
      */
     function getInvoicesDirectory(): string
     {
-        return invoicesPath();
+        return (new App\Repositories\CompanyStorageRepository())->invoicesPath();
     }
 }
 
@@ -65,7 +65,7 @@ if (!function_exists('getLogsDirectory')) {
      */
     function getLogsDirectory(): string
     {
-        return logsPath();
+        return (new App\Repositories\CompanyStorageRepository())->logsPath();
     }
 }
 
@@ -78,7 +78,7 @@ if (!function_exists('getBackupDirectory')) {
      */
     function getBackupDirectory(): string
     {
-        return backupPath();
+        return (new App\Repositories\CompanyStorageRepository())->backupPath();
     }
 }
 
@@ -91,7 +91,7 @@ if (!function_exists('getOutputDirectory')) {
      */
     function getOutputDirectory(): string
     {
-        $crn = getCurrentCompany();
+        $crn = (new App\Repositories\CompanyStorageRepository())->getCurrentCompany();
     
         if ($crn) {
             return getCompanyPath($crn);

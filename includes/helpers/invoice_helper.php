@@ -13,7 +13,7 @@
  */
 use Saleh7\Zatca\Mappers\InvoiceMapper;
 use Saleh7\Zatca\GeneratorInvoice;
-use \Saleh7\Zatca\ZatcaAPI;
+
 
 if (!function_exists('buildCustomer')) {
 
@@ -487,6 +487,7 @@ function submitInvoice(
         'response' => $result->toArray()    
     ];
 }
+
 function createInvoiceApi(): \Saleh7\Zatca\ZatcaAPI {
     return new \Saleh7\Zatca\ZatcaAPI(
         getApiEnvironment()
@@ -512,53 +513,6 @@ function commitInvoiceChain(
         ]
     );        
 }
-
-/**
- * Generate and sign invoice.
- *
- * @param array  $invoiceData
- * @param array  $credentials
- * @param string $privateKey
- * @param string $outputDirectory
- *
- * @return array
- */
-function buildSignedInvoice(
-    array $invoiceData,
-    array $credentials,
-    string $privateKey,
-    string $outputDirectory
-): array {
-
-    // Generate XML
-    $xmlPath = generateInvoiceXml(
-        $invoiceData,
-        $outputDirectory
-    );
-
-    if (!$xmlPath || !file_exists($xmlPath)) {
-        throw new Exception('Invoice XML generation failed.');
-    }
-
-    // Sign XML
-    $signed = signInvoice(
-        $xmlPath,
-        $credentials,
-        $privateKey,
-        $invoiceData['id'] . '_signed.xml',
-        $outputDirectory
-    );
-
-    return [
-        'invoice' => $invoiceData,
-        'xml_path' => $xmlPath,
-        'signed_xml' => $signed['signedXml'],
-        'signed_xml_path' => $signed['signedXmlFile'],
-        'hash' => $signed['hash'],
-        'invoice_id' => $invoiceData['id'],
-        'uuid' => $invoiceData['uuid']
-    ];
-} 
 
 function getInitialPIH(): string
 {

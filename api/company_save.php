@@ -25,11 +25,11 @@ $data = [
 
 try {
 
-    validateCompanyData($data);
+    (new App\Repositories\CompanyStorageRepository())->validateCompanyData($data);
 
-    if (companyExists($data['crn'])) {
+    if ((new App\Repositories\CompanyStorageRepository())->companyExists($data['crn'])) {
 
-        updateCompany(
+        (new App\Repositories\CompanyStorageRepository())->updateCompany(
             $data['crn'],
             $data
         );
@@ -38,17 +38,17 @@ try {
 
     } else {
 
-        createCompany($data);
+        (new App\Repositories\CompanyStorageRepository())->createCompany($data);
 
         $message = 'Company created successfully.';
     }
 
-    setCurrentCompany($data['crn']);
+    (new App\Repositories\CompanyStorageRepository())->setCurrentCompany($data['crn']);
 
     jsonResponse([
         'success' => true,
         'message' => $message,
-        'data' => getCompany($data['crn'])
+        'data' => (new App\Repositories\CompanyStorageRepository())->getCompany($data['crn'])
     ]);
 
 } catch (Throwable $e) {

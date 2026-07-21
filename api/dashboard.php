@@ -30,8 +30,8 @@ try
     |--------------------------------------------------------------------------
     */
 
-    $companies = getAllCompanies();
-    $currentCompanyCrn = getCurrentCompany();
+    $companies = (new App\Repositories\CompanyStorageRepository())->getAllCompanies();
+    $currentCompanyCrn = (new App\Repositories\CompanyStorageRepository())->getCurrentCompany();
 
     $currentCompany = null;
 

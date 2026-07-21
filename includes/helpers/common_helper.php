@@ -205,7 +205,7 @@ if (!function_exists('getCommonNameByEnvironment')) {
 
 function loadCertificateSettings($settingsFile = null): array
 {
-    $company = loadCurrentCompany();
+    $company = (new App\Repositories\CompanyStorageRepository())->loadCurrentCompany();
 
     if (empty($company['id'])) {
         return [];

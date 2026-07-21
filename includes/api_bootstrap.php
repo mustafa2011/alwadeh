@@ -37,8 +37,9 @@ define('APP_ROOT', dirname(__DIR__));
 
 
 define('API_PATH', __DIR__);
-define('HELPERS_PATH', __DIR__ . '/helpers');
-define('STORAGE_PATH', APP_ROOT . '/Storage');
+define('HELPERS_PATH', __DIR__ . DIRECTORY_SEPARATOR . 'helpers');
+define('STORAGE_PATH', APP_ROOT . DIRECTORY_SEPARATOR . 'Storage');
+define('COMPANY_PATH', STORAGE_PATH . DIRECTORY_SEPARATOR . 'Companies');
 
 /*
 |--------------------------------------------------------------------------
@@ -72,9 +73,8 @@ require_once HELPERS_PATH . '/file_helper.php';
 require_once HELPERS_PATH . '/storage_helper.php';
 
 // 3. Business Layer
-require_once HELPERS_PATH . '/company_helper.php';
+// require_once HELPERS_PATH . '/company_helper.php';
 require_once HELPERS_PATH . '/company_status.php';
-require_once HELPERS_PATH . '/compliance_helper.php';
 require_once HELPERS_PATH . '/certificate_helper.php';
 require_once HELPERS_PATH . '/invoice_helper.php';
 
@@ -100,16 +100,35 @@ if (!in_array($currentScript, $publicApis, true)) {
 |--------------------------------------------------------------------------
 */
 
+// if (!function_exists('jsonResponse')) {
+//     function jsonResponse(array $data, int $code = 200): void
+//     {
+//         http_response_code($code);
+//         header('Content-Type: application/json; charset=UTF-8');
+//         // echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+//         jsonResponse([
+//             'success' => true,
+//             'data' => $data
+//         ]);
+//         exit;
+//     }
+// }
 if (!function_exists('jsonResponse')) {
-    function jsonResponse(array $data, int $code = 200): void
-    {
+    function jsonResponse(
+        bool $success,
+        string $message,
+        array $data = [],
+        int $code = 200
+    ): void {
         http_response_code($code);
         header('Content-Type: application/json; charset=UTF-8');
-        // echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-        jsonResponse([
-            'success' => true,
-            'data' => $data
-        ]);
+
+        echo json_encode([
+            'success' => $success,
+            'message' => $message,
+            'data'    => $data,
+        ], JSON_UNESCAPED_UNICODE);
+
         exit;
     }
 }

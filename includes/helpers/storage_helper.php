@@ -74,16 +74,3 @@ function ensureCompanyDirectories(string $crn): void {
         }
     }
 }
-
-function companyPath(?string $crn = null): string
-{
-    if ($crn === null) {
-        $crn = getCurrentCompany();
-
-        if (!$crn) {
-            throw new Exception('No current company selected.');
-        }
-    }
-
-    return getCompanyPath($crn);
-}

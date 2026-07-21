@@ -1,83 +1,14 @@
 <?php
-/**
- * Certificate Helper Functions
- *
- * Handles certificate generation and certificate-related data.
- *
- * Responsibilities:
- * - Supplier information
- * - Certificate settings
- * - Private key loading
- * - Compliance credentials
- * - Production credentials
- * 
- */
 
  use App\Core\Database;
-
-function buildSupplier(array $company): array
-{
-
-    return [
-        'registrationName'   => $company['legal_entity']['registration_name'] ?? '',
-        'taxId'              => $company['tax_scheme']['company_id_value'] ?? '',
-        'identificationId'   => $company['commercial_registration_number'] ?? '',
-        'identificationType' => 'CRN',
-
-        'address' => [
-            'street'         => $company['address']['street_name'] ?? '',
-            'buildingNumber' => $company['address']['building_number'] ?? '',
-            'subdivision'    => $company['address']['city_subdivision_name'] ?? '',
-            'city'           => $company['address']['city_name'] ?? '',
-            'postalZone'     => $company['address']['postal_zone'] ?? '',
-            'country'        => $company['address']['country_identification_code'] ?? 'SA',
-        ],    
-        'taxScheme' => [
-            'id' => $company['tax_scheme']['tax_scheme_id'] ?? 'VAT',
-        ],
-    ];
-}  
-
-function loadPrivateKey()
-{
-    $company = loadCurrentCompany();
-    $pdo = Database::getConnection();
-
-    $stmt = $pdo->prepare("
-        SELECT private_key_content
-        FROM company_zatca_settings
-        WHERE company_id = ?
-        ORDER BY id DESC
-        LIMIT 1
-    ");
-
-    $stmt->execute([
-        $company['id']
-    ]);
-
-    $privateKey = $stmt->fetchColumn();
-
-    if (!$privateKey) {
-        throw new Exception('Private key not found.');
-    }
-
-    return trim(
-        preg_replace(
-            '/-----(?:BEGIN|END)(?: EC)? PRIVATE KEY-----/',
-            '',
-            $privateKey
-        )
-    );
-}
+ use Saleh7\Zatca\Api\ProductionCertificateResult;
 
 function saveProductionCredentials(
-    string $certificate,
-    string $secret,
-    string $requestId,
-    ?string $pcsid = null
+    ProductionCertificateResult $result
 ): void
 {
-    $company = loadCurrentCompany();
+    $company = (new App\Repositories\CompanyStorageRepository())->loadCurrentCompany();
+
     $pdo = Database::getConnection();
 
     $stmt = $pdo->prepare("
@@ -94,14 +25,14 @@ function saveProductionCredentials(
     ");
 
     $stmt->execute([
-        $certificate,
-        $secret,
-        $certificate,
-        $requestId,
+        $result->getCertificate(),
+        $result->getSecret(),
+        $result->getCertificate(),
+        $result->getRequestId(),
         getDatabaseEnvironment(),
         $company['id']
     ]);
-}
+} 
 
 function saveCertificateSettings(array $settings): void
 {
@@ -257,7 +188,7 @@ function saveComplianceCertificate(
     string $privateKey
 ): void
 {
-    $company = loadCurrentCompany();
+    $company = (new App\Repositories\CompanyStorageRepository())->loadCurrentCompany();
 
     if (empty($company['id'])) {
         throw new Exception('Company not found.');
@@ -310,39 +241,6 @@ function getCertificateSettings(int $companyId): array
     return $settings;
 }
 
-function loadComplianceCredentials(): array
-{
-    $company = loadCurrentCompany();
-
-    $pdo = Database::getConnection();
-
-    $stmt = $pdo->prepare("
-        SELECT
-            compliance_csid,
-            compliance_secret,
-            request_id
-        FROM company_zatca_settings
-        WHERE company_id = ?
-        LIMIT 1
-    ");
-
-    $stmt->execute([
-        $company['id']
-    ]);
-
-    $credentials = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if (!$credentials) {
-        throw new Exception('Compliance credentials not found.');
-    }
-
-    return [
-        'binary_security_token' => $credentials['compliance_csid'],
-        'secret' => $credentials['compliance_secret'],
-        'request_id' => $credentials['request_id']
-    ];
-}
-
 function updateCertificateValidity(int $companyId, string $certificate): void
 {
     $x509 = new \phpseclib3\File\X509();
@@ -391,33 +289,4 @@ function updateCertificateValidity(int $companyId, string $certificate): void
 
 }
 
-function loadProductionCredentials(): array
-{
-    $company = loadCurrentCompany();
 
-    $stmt = Database::getConnection()->prepare("
-        SELECT
-            production_certificate_content,
-            production_secret,
-            request_id
-        FROM company_zatca_settings
-        WHERE company_id = ?
-        LIMIT 1
-    ");
-
-    $stmt->execute([
-        $company['id']
-    ]);
-
-    $credentials = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if (!$credentials) {
-        throw new Exception('Production credentials not found.');
-    }
-
-    return [
-        'binary_security_token' => $credentials['production_certificate_content'],
-        'secret'                => $credentials['production_secret'],
-        'request_id'            => $credentials['request_id']
-    ];
-}
