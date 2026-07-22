@@ -7,6 +7,7 @@ use Saleh7\Zatca\Exceptions\ZatcaApiException;
 
 requirePostRequest();
 
+
 try {
 
     $otp = trim($_POST['otp'] ?? '');

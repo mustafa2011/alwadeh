@@ -205,13 +205,13 @@ if (!function_exists('getCommonNameByEnvironment')) {
 
 function loadCertificateSettings($settingsFile = null): array
 {
+    $pdo = Database::getConnection();
     $company = (new App\Repositories\CompanyStorageRepository())->loadCurrentCompany();
 
     if (empty($company['id'])) {
         return [];
     }
 
-    $pdo = Database::getConnection();
 
     $stmt = $pdo->prepare("
         SELECT *

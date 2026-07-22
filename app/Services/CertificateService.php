@@ -9,7 +9,6 @@ use App\Repositories\CertificateStorageRepository;
 use App\Services\CompanyService;
 use App\Services\ComplianceService;
 use App\Validators\CertificateValidator;
-
 class CertificateService
 {
     protected CompanySettingsRepository $settingsRepository;

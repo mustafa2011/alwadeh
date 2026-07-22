@@ -7,9 +7,9 @@ function saveProductionCredentials(
     ProductionCertificateResult $result
 ): void
 {
-    $company = (new App\Repositories\CompanyStorageRepository())->loadCurrentCompany();
-
     $pdo = Database::getConnection();
+
+    $company = (new App\Repositories\CompanyStorageRepository())->loadCurrentCompany();
 
     $stmt = $pdo->prepare("
         UPDATE company_zatca_settings

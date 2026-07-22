@@ -7,10 +7,21 @@ use \Saleh7\Zatca\Helpers\Certificate;
 use App\Services\ComplianceService;
 use App\Services\CompanyService;
 use App\Repositories\CertificateStorageRepository;
+use App\Validators\InvoiceValidator;
+use App\Builders\InvoiceBuilder;
+use App\Repositories\InvoiceRepository;
+use App\Services\InvoicePersistenceService;
+use App\Core\Database;
+use PDO;
 use Exception;
 
 class InvoiceService
 {
+    private PDO $db;
+    protected InvoicePersistenceService $invoicePersistenceService;
+    protected InvoiceRepository $invoiceRepository;
+    protected InvoiceBuilder $invoiceBuilder;
+    protected InvoiceValidator $invoiceValidator;
     protected CertificateStorageRepository $certificateRepository;
     protected InvoiceMapper $invoiceMapper;
     protected CompanyStorageRepository $storageRepository;
@@ -23,17 +34,20 @@ class InvoiceService
     protected CompanyService $companyService;
 
     public function __construct() {
+        $this->db = Database::getConnection();
+        $this->invoiceValidator = new InvoiceValidator();
         $this->invoiceMapper = new InvoiceMapper();
+        $this->invoiceBuilder = new InvoiceBuilder();        
         $this->complianceService = new ComplianceService();
         $this->companyService = new CompanyService();
         $this->storageRepository = new CompanyStorageRepository();
         $this->company = $this->storageRepository->loadCurrentCompany();
-        
         $this->certificateRepository = new CertificateStorageRepository();
-
         $this->settings = $this->certificateRepository->loadSettings();
         $this->productionCredentials = $this->certificateRepository->loadProductionCredentials();
-        $this->complianceCredentials = $this->certificateRepository->loadComplianceCredentials();        
+        $this->complianceCredentials = $this->certificateRepository->loadComplianceCredentials();
+        $this->invoiceRepository = new InvoiceRepository($this->db);
+        $this->invoicePersistenceService = new InvoicePersistenceService();      
     }
 
     private function getCompany(): array {
@@ -50,26 +64,6 @@ class InvoiceService
         return $this->complianceCredentials;
     }
 
-
-    private function validateGenerationRequirements(): void {
-        if (empty($this->company)) {
-            throw new Exception('Company is not loaded.');
-        }
-
-        if (empty($this->settings)) {
-            throw new Exception('Certificate settings not found.');
-        }
-    }
-
-    private function validateSigningRequirements(): void {
-        if (empty($this->productionCredentials['certificate'])) {
-            throw new Exception('Production certificate not found.');
-        }
-
-        if (empty($this->productionCredentials['secret'])) {
-            throw new Exception('Production secret not found.');
-        }
-    }
     private function createCertificate(): Certificate {
         $credentials = $this->getProductionCredentials();
         if (empty($credentials['certificate'])) {
@@ -89,16 +83,6 @@ class InvoiceService
         );
     }
 
-    private function getInvoiceType(array $invoiceData): string {
-        if (
-            empty($invoiceData['invoiceType']) ||
-            empty($invoiceData['invoiceType']['invoice'])
-        ) {
-            throw new Exception('Invoice type is required.');
-        }
-        return strtolower($invoiceData['invoiceType']['invoice']);
-    }
-
     public function createInvoice(array $invoiceData): array {
         return $this->issueInvoice($invoiceData, false);
     }
@@ -106,12 +90,25 @@ class InvoiceService
     public function issueInvoice( array $invoiceData, bool $submit = true): array  {
 
         $this->storageRepository->loadInvoiceState();
-        $this->validateGenerationRequirements();
-        $type = $this->getInvoiceType($invoiceData);
-        $invoice = $this->prepareInvoiceData(
+        $this->invoiceValidator->validateGenerationRequirements(
+            $this->company,
+            $this->settings
+        );
+        $type = $this->invoiceValidator->getInvoiceType($invoiceData);
+
+        $chain = getNextInvoiceChain(
+            $this->storageRepository->getInvoiceStateFile()
+        );
+        
+        $invoice = $this->invoiceBuilder->prepare(
             $type,
+            $this->companyService->buildSupplier(),
+            $this->settings['environment'] ?? null,
+            $this->storageRepository->loadInvoiceState(),
+            $chain,
             $invoiceData
-        );        
+        );    
+
         if (!empty($invoiceData['items'])) {      
             $totals = calculateInvoiceTotals($invoiceData['items']);
             $invoice = buildInvoice(
@@ -122,11 +119,12 @@ class InvoiceService
                 )
             );
         }        
-        $chain = $invoice['invoice_chain'];
+
         unset($document);
 
 
         $credentials = $this->getProductionCredentials();
+
         $package = $this->buildSignedInvoice(
             $invoice,
             $this->storageRepository->getInvoicesDirectory()
@@ -146,24 +144,31 @@ class InvoiceService
             !$isSimplified
             && !empty($submitResult['cleared_xml'])
         ) {        
-            file_put_contents(       
+            file_put_contents(
                 dirname($package['signed_xml_path'])
                 . DIRECTORY_SEPARATOR
                 . $package['invoice_id']
-                . '_zatca.xml',        
+                . '_zatca.xml',
                 $submitResult['cleared_xml']
-        
-            );        
-        }
+            );        }
         if ($submitResult['success']) {
             commitInvoiceChain(
-                $this->storageRepository->getInvoiceStateFile(),           
+                $this->storageRepository->getInvoiceStateFile(),
                 $invoice,
                 $chain,
                 ['hash' => $package['hash']],
                 $submitResult
             );
+        
+            $this->invoicePersistenceService->save(
+                $invoice,
+                $package,
+                $chain,
+                $this->company,
+                $submitResult
+            );
         }
+        
         return [
             'success' => $submitResult['success'],
             'message' =>
@@ -189,62 +194,10 @@ class InvoiceService
         return strtolower($type) === 'standard';
     }
 
-    
-    private function prepareInvoiceData(string $type, array $invoiceData): array {
-        $chain = getNextInvoiceChain($this->storageRepository->getInvoiceStateFile());
-        $invoice = array_replace_recursive(
-            [
-                'invoice_type' => $type,
-                'supplier' => $this->companyService->buildSupplier(), //prepareSupplier(),
-                'environment' => $this->getSettings()['environment'] ?? null,
-                'invoice_state' => $this->storageRepository->loadInvoiceState(),
-            ],
-            $invoiceData
-        );
-        $invoice['type'] = $type;
-        $invoice['subtype'] = strtolower($invoiceData['invoiceType']['type'] ?? 'invoice');        
-        if (!isset($invoice['additionalDocuments']) || !is_array($invoice['additionalDocuments'])) {
-            $invoice['additionalDocuments'] = [];
-        }
-        $hasICV = false;
-        $hasPIH = false;
-        foreach ($invoice['additionalDocuments'] as &$document) {
-            if (($document['id'] ?? '') === 'ICV') {
-                $document['uuid'] = (string) $chain['icv'];
-                $hasICV = true;
-            }
-            if (($document['id'] ?? '') === 'PIH') {
-                $document['attachment'] = [
-                    'content' => empty($chain['previous_hash'])
-                        ? getInitialPIH()
-                        : $chain['previous_hash']
-                ];
-                $hasPIH = true;
-            }
-        }
-        unset($document);
-        if (!$hasICV) {
-            $invoice['additionalDocuments'][] = [
-                'id'   => 'ICV',
-                'uuid' => (string) $chain['icv'],
-            ];
-        }
-        if (!$hasPIH) {
-            $invoice['additionalDocuments'][] = 
-            [
-                'id' => 'PIH',
-                'attachment' => [
-                    'content' => empty($chain['previous_hash'])
-                        ? getInitialPIH()
-                        : $chain['previous_hash']
-                ]
-            ];
-        }
-        $invoice['invoice_chain'] = $chain;
-        return $invoice;
-    }
     public function signInvoice(string $xmlPath): InvoiceSigner {
-        $this->validateSigningRequirements();
+        $this->invoiceValidator->validateSigningRequirements(
+            $this->productionCredentials
+        );
         $xmlInvoice = file_get_contents($xmlPath);
 
         $signedInvoice = InvoiceSigner::signInvoice($xmlInvoice, $this->createCertificate());
@@ -275,20 +228,15 @@ class InvoiceService
             $outputDirectory
         );
     
-        // $signedXmlPath = $outputDirectory
-        //     . DIRECTORY_SEPARATOR
-        //     . $invoiceData['id']
-        //     . '_signed.xml';
-        // $signed->saveXMLFile($signedXmlPath);
-    
         return [
             'invoice' => $invoiceData,
             'xml_path' => $xmlPath,
             'signed_xml' => $signed->getXML(),
-            'signed_xml_path' => $outputDirectory,
+            'signed_xml_path' => $outputDirectory . DIRECTORY_SEPARATOR . $invoiceData['id'] . '_signed.xml',
             'hash' => $signed->getHash(),
+            'qr_code' => $signed->getQRCode(),
             'invoice_id' => $invoiceData['id'],
             'uuid' => $invoiceData['uuid'],
-        ];
+        ];        
     }
 }

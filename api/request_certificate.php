@@ -6,6 +6,7 @@ use App\Services\CertificateService;
 
 requirePostRequest();
 
+
 try {
 
     $service = new CertificateService();

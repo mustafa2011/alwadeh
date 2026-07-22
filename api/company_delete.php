@@ -13,14 +13,14 @@ if (empty($crn)) {
     ], 400);
 }
 
-if (!(new App\Repositories\CompanyStorageRepository())->companyExists($crn)) {
+if (!(new App\Repositories\CompanyStorageRepository)->companyExists($crn)) {
     jsonResponse([
         'success' => false,
         'message' => 'Company not found.'
     ], 404);
 }
 
-(new App\Repositories\CompanyStorageRepository())->deleteCompany($crn);
+(new App\Repositories\CompanyStorageRepository)->deleteCompany($crn);
 
 jsonResponse([
     'success' => true,

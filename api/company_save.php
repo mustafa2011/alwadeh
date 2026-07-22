@@ -25,8 +25,6 @@ $data = [
 
 try {
 
-    (new App\Repositories\CompanyStorageRepository())->validateCompanyData($data);
-
     if ((new App\Repositories\CompanyStorageRepository())->companyExists($data['crn'])) {
 
         (new App\Repositories\CompanyStorageRepository())->updateCompany(

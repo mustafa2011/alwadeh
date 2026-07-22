@@ -34,8 +34,6 @@ header('Pragma: no-cache');
 */
 
 define('APP_ROOT', dirname(__DIR__));
-
-
 define('API_PATH', __DIR__);
 define('HELPERS_PATH', __DIR__ . DIRECTORY_SEPARATOR . 'helpers');
 define('STORAGE_PATH', APP_ROOT . DIRECTORY_SEPARATOR . 'Storage');
@@ -100,19 +98,6 @@ if (!in_array($currentScript, $publicApis, true)) {
 |--------------------------------------------------------------------------
 */
 
-// if (!function_exists('jsonResponse')) {
-//     function jsonResponse(array $data, int $code = 200): void
-//     {
-//         http_response_code($code);
-//         header('Content-Type: application/json; charset=UTF-8');
-//         // echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-//         jsonResponse([
-//             'success' => true,
-//             'data' => $data
-//         ]);
-//         exit;
-//     }
-// }
 if (!function_exists('jsonResponse')) {
     function jsonResponse(
         bool $success,

@@ -194,7 +194,7 @@ document.getElementById('requestCertificateForm').addEventListener('submit', fun
         Running Request Certificate...
     `;
 
-    fetch('../Certificates/request_certificate.php', {
+    fetch('../api/request_certificate.php', {
 
         method: 'POST',
         body: formData
@@ -271,7 +271,7 @@ document.getElementById('complianceForm').addEventListener('submit', function (e
         Running Compliance...
     `;
 
-    fetch('../Certificates/compliance_check.php', {
+    fetch('../api/compliance_check.php', {
 
         method: 'POST'
 

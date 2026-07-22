@@ -3,7 +3,6 @@
 namespace App\Repositories;
 use App\Core\Database;
 use PDO;
-use Exception;
 
 class CertificateStorageRepository
 {

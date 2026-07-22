@@ -7,6 +7,7 @@ use Saleh7\Zatca\Exceptions\ZatcaApiException;
 
 requirePostRequest();
 
+
 try {
 
     $service = new CertificateService();
