@@ -15,9 +15,9 @@
     </ext:UBLExtensions>
     <cbc:ProfileID>reporting:1.0</cbc:ProfileID>
     <cbc:ID>SIM00004</cbc:ID>
-    <cbc:UUID>57e9553d-fd42-43e4-aabc-bcb0a0b593d9</cbc:UUID>
-    <cbc:IssueDate>2026-07-21</cbc:IssueDate>
-    <cbc:IssueTime>13:35:40Z</cbc:IssueTime>
+    <cbc:UUID>ad62477c-31b7-476b-8cdc-5ebc477202d9</cbc:UUID>
+    <cbc:IssueDate>2026-07-22</cbc:IssueDate>
+    <cbc:IssueTime>00:04:18Z</cbc:IssueTime>
     <cbc:InvoiceTypeCode name="0200000">388</cbc:InvoiceTypeCode>
     <cbc:DocumentCurrencyCode>SAR</cbc:DocumentCurrencyCode>
     <cbc:TaxCurrencyCode>SAR</cbc:TaxCurrencyCode>
@@ -60,7 +60,7 @@
                 </cac:TaxScheme>
             </cac:PartyTaxScheme>
             <cac:PartyLegalEntity>
-                <cbc:RegistrationName>Alwadeh IT Company</cbc:RegistrationName>
+                <cbc:RegistrationName>Alwadeh IT</cbc:RegistrationName>
             </cac:PartyLegalEntity>
         </cac:Party>
     </cac:AccountingSupplierParty>

@@ -11,6 +11,8 @@ use App\Validators\InvoiceValidator;
 use App\Builders\InvoiceBuilder;
 use App\Repositories\InvoiceRepository;
 use App\Services\InvoicePersistenceService;
+use App\Repositories\CustomerRepository;
+
 use App\Core\Database;
 use PDO;
 use Exception;
@@ -32,6 +34,7 @@ class InvoiceService
     protected array $complianceCredentials = [];
     protected ComplianceService $complianceService;
     protected CompanyService $companyService;
+    private CustomerRepository $customerRepository;
 
     public function __construct() {
         $this->db = Database::getConnection();
@@ -47,7 +50,8 @@ class InvoiceService
         $this->productionCredentials = $this->certificateRepository->loadProductionCredentials();
         $this->complianceCredentials = $this->certificateRepository->loadComplianceCredentials();
         $this->invoiceRepository = new InvoiceRepository($this->db);
-        $this->invoicePersistenceService = new InvoicePersistenceService();      
+        $this->invoicePersistenceService = new InvoicePersistenceService(); 
+        $this->customerRepository = new CustomerRepository();     
     }
 
     private function getCompany(): array {
@@ -99,7 +103,11 @@ class InvoiceService
         $chain = getNextInvoiceChain(
             $this->storageRepository->getInvoiceStateFile()
         );
-        
+
+        $invoiceData['customer'] =
+        $this->customerRepository->findForInvoice(
+            $invoiceData['customerId']
+        );    
         $invoice = $this->invoiceBuilder->prepare(
             $type,
             $this->companyService->buildSupplier(),
@@ -108,20 +116,21 @@ class InvoiceService
             $chain,
             $invoiceData
         );    
-
+        
         if (!empty($invoiceData['items'])) {      
             $totals = calculateInvoiceTotals($invoiceData['items']);
+ 
             $invoice = buildInvoice(
                 $invoice['supplier'],
                 array_merge(
                     $invoice,
-                    $totals
+                    $totals,
+                    [
+                        'customer' => $invoice['customer']
+                    ]
                 )
-            );
+            );                      
         }        
-
-        unset($document);
-
 
         $credentials = $this->getProductionCredentials();
 
@@ -140,10 +149,7 @@ class InvoiceService
             $package['uuid'],
             $isSimplified
         );
-        if (
-            !$isSimplified
-            && !empty($submitResult['cleared_xml'])
-        ) {        
+        if (!$isSimplified && !empty($submitResult['cleared_xml'])) {        
             file_put_contents(
                 dirname($package['signed_xml_path'])
                 . DIRECTORY_SEPARATOR
@@ -159,13 +165,14 @@ class InvoiceService
                 ['hash' => $package['hash']],
                 $submitResult
             );
-        
+                  
             $this->invoicePersistenceService->save(
                 $invoice,
                 $package,
                 $chain,
                 $this->company,
-                $submitResult
+                $submitResult,
+                $invoiceData
             );
         }
         

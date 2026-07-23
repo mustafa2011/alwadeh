@@ -10,7 +10,7 @@ class InvoiceBuilder
         ?string $environment,
         array $invoiceState,
         array $chain,
-        array $invoiceData
+        array $invoiceData,
     ): array {
         $invoice = array_replace_recursive(
             [

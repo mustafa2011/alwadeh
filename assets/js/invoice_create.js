@@ -159,56 +159,23 @@ document.addEventListener(
                     )
                     .value;
 
-                let invoiceData = {
-
-
-                    invoiceNumber:
-                    document.getElementById("invoiceNumber").value,
-
-
-                    invoiceType:{
-
-                        invoice: invoiceType,
-
-                        type: "invoice"
-
-                    },
-
-                    buyer:{
-
-                        name:
-                        document
-                        .getElementById(
-                            "customerName"
-                        )
-                        .value,
-
-                        vatNumber:
-                        document
-                        .getElementById(
-                            "customerVat"
-                        )
-                        .value,
-
-                        country:"SA",
-
-                        city:"Riyadh",
-
-                        street:"",
-
-                        buildingNumber:"",
-
-                        postalCode:""
-
-                    },
-
-                    items:items
-
-                };
-
-                createInvoice(
-                    invoiceData
-                );
+                    let invoiceData = {
+                        invoiceNumber: document.getElementById("invoiceNumber").value,
+                        invoiceType: {
+                            invoice: invoiceType,
+                            type: "invoice"
+                        },
+                        // customerId: selectedCustomerId || null,
+                        customerId: 1,
+                        items: items
+                    };
+                    
+                    if (invoiceType === "standard" && !invoiceData.customerId) {
+                        openCustomerModal();
+                        return;
+                    }
+                    
+                    createInvoice(invoiceData);
 
             }
         );

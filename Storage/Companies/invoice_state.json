@@ -1,9 +1,6 @@
 {
-    "last_icv": 16,
-    "last_invoice_hash": "eUo3D\/pVwv9Hxu3Df\/ug2TNMfxjtu4jFn2GOrrMDx78=",
-    "last_uuid": "c3f0ebb2-7906-4910-b255-925571f128a1",
-    "last_invoice_number": "STD00001",
-    "last_invoice_type": "standard",
-    "last_submission_type": "clearance",
-    "updated_at": "2026-07-22T13:36:24+00:00"
+    "last_icv": 0,
+    "last_invoice_hash": "",
+    "last_uuid": "",
+    "updated_at": ""
 }

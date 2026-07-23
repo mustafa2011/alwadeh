@@ -114,6 +114,7 @@ class ComposerStaticInitb100ddd12d04cb7891edfb8dae3a0953
         'App\\Repositories\\CertificateStorageRepository' => __DIR__ . '/../..' . '/app/Repositories/CertificateStorageRepository.php',
         'App\\Repositories\\CompanySettingsRepository' => __DIR__ . '/../..' . '/app/Repositories/CompanySettingsRepository.php',
         'App\\Repositories\\CompanyStorageRepository' => __DIR__ . '/../..' . '/app/Repositories/CompanyStorageRepository.php',
+        'App\\Repositories\\CustomerRepository' => __DIR__ . '/../..' . '/app/Repositories/CustomerRepository.php',
         'App\\Repositories\\InvoiceLineRepository' => __DIR__ . '/../..' . '/app/Repositories/InvoiceLineRepository.php',
         'App\\Repositories\\InvoiceRepository' => __DIR__ . '/../..' . '/app/Repositories/InvoiceRepository.php',
         'App\\Repositories\\InvoiceSnapshotRepository' => __DIR__ . '/../..' . '/app/Repositories/InvoiceSnapshotRepository.php',

@@ -17,6 +17,7 @@ class InvoiceRepository
         $sql = "
         INSERT INTO invoices (
             company_id,
+            customer_id,
             invoice_number,
             invoice_uuid,
             invoice_type,
@@ -37,6 +38,7 @@ class InvoiceRepository
             created_by
         ) VALUES (
             :company_id,
+            :customer_id,
             :invoice_number,
             :invoice_uuid,
             :invoice_type,
@@ -58,9 +60,10 @@ class InvoiceRepository
         )";
 
         $stmt = $this->db->prepare($sql);
-
+        
         $stmt->execute([
             'company_id' => $invoice['company_id'],
+            'customer_id' =>  $invoice['customer_id'] ?? null,
             'invoice_number' => $invoice['invoice_number'],
             'invoice_uuid' => $invoice['invoice_uuid'],
             'invoice_type' => $invoice['invoice_type'],

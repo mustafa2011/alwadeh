@@ -15,6 +15,7 @@ return array(
     'App\\Repositories\\CertificateStorageRepository' => $baseDir . '/app/Repositories/CertificateStorageRepository.php',
     'App\\Repositories\\CompanySettingsRepository' => $baseDir . '/app/Repositories/CompanySettingsRepository.php',
     'App\\Repositories\\CompanyStorageRepository' => $baseDir . '/app/Repositories/CompanyStorageRepository.php',
+    'App\\Repositories\\CustomerRepository' => $baseDir . '/app/Repositories/CustomerRepository.php',
     'App\\Repositories\\InvoiceLineRepository' => $baseDir . '/app/Repositories/InvoiceLineRepository.php',
     'App\\Repositories\\InvoiceRepository' => $baseDir . '/app/Repositories/InvoiceRepository.php',
     'App\\Repositories\\InvoiceSnapshotRepository' => $baseDir . '/app/Repositories/InvoiceSnapshotRepository.php',

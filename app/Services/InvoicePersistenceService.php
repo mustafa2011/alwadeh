@@ -5,6 +5,7 @@ use App\Repositories\InvoiceZatcaRepository;
 use App\Repositories\InvoiceTotalsRepository;
 use App\Repositories\InvoiceTaxTotalsRepository;
 use App\Repositories\InvoiceLineRepository;
+use App\Repositories\InvoiceSnapshotRepository;
 use App\Core\Database;
 use PDO;
 
@@ -16,6 +17,7 @@ class InvoicePersistenceService
     protected InvoiceTotalsRepository $invoiceTotalsRepository;
     protected InvoiceTaxTotalsRepository $invoiceTaxTotalsRepository;
     protected InvoiceLineRepository $invoiceLineRepository;
+    protected InvoiceSnapshotRepository $invoiceSnapshotRepository;
 
     public function __construct()
     {
@@ -25,6 +27,7 @@ class InvoicePersistenceService
         $this->invoiceTotalsRepository = new InvoiceTotalsRepository($this->db);
         $this->invoiceTaxTotalsRepository = new InvoiceTaxTotalsRepository($this->db);
         $this->invoiceLineRepository = new InvoiceLineRepository($this->db);
+        $this->invoiceSnapshotRepository=new InvoiceSnapshotRepository($this->db);
     }
 
     public function save(
@@ -32,12 +35,15 @@ class InvoicePersistenceService
         array $package,
         array $chain,
         array $company,
-        array $submitResult
+        array $submitResult,
+        array $invoiceData = []
     ): int {
         $this->db->beginTransaction();
-        try {
+          
+        try {           
             $invoiceId = $this->invoiceRepository->create([
                 'company_id' => $company['id'],
+                'customer_id' => $invoiceData['customerId'],
                 'invoice_number' => $invoice['id'],
                 'invoice_uuid' => $package['uuid'],
                 'invoice_type' => $invoice['invoiceType']['type'] ?? 'invoice',
@@ -77,7 +83,13 @@ class InvoicePersistenceService
                 $invoiceId,
                 $invoice['invoiceLines']
             );
-
+            
+            $this->invoiceSnapshotRepository->create(
+                $invoiceId,
+                $invoice,
+                $invoiceData
+            );
+            
             $this->db->commit();
 
             return $invoiceId;
