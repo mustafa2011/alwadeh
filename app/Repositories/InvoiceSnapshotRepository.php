@@ -41,10 +41,12 @@ class InvoiceSnapshotRepository
                 invoice_id,
                 customer_id,
                 party_name,
+                endpoint_id,
+                endpoint_scheme,
                 party_identification_id,
                 party_identification_scheme
             )
-            VALUES (?,?,?,?,?)
+            VALUES (?,?,?,?,?,?,?)
         ");
     
         $stmt->execute([
@@ -56,10 +58,16 @@ class InvoiceSnapshotRepository
             $data['taxId']
                 ?? $data['vatNumber']
                 ?? null,
-            'VAT'
+            'VAT',
+            $data['identificationId']
+                ?? $data['taxId']
+                ?? $data['vatNumber']
+                ?? null,
+            $data['identificationType']
+                ?? 'VAT'
         ]);
     
-        return (int)$this->db->lastInsertId();
+        return (int) $this->db->lastInsertId();
     }
     
     private function legalEntity(
@@ -81,15 +89,18 @@ class InvoiceSnapshotRepository
             )
             VALUES (?,?,?,?,?,?)
         ");
-    
         $stmt->execute([
             $invoiceId,
             $partyType,
             $partyId,
             $data['registrationName'] ?? $data['name'] ?? '',
-            $data['taxId'] ?? $data['vatNumber'] ?? null,
-            'VAT'
-        ]);
+            $data['companyId']
+                ?? $data['taxId']
+                ?? $data['vatNumber']
+                ?? null,
+            $data['companyIdScheme']
+                ?? 'VAT'
+        ]);    
     }
     private function supplier(int $invoiceId,array $data):int
     {
@@ -138,8 +149,10 @@ class InvoiceSnapshotRepository
             $invoiceId,
             $type,
             $partyId,
-            $data['taxScheme']['id']??'VAT',
-            $data['taxId']??$data['vatNumber']??null
-        ]);
+            is_array($data['taxScheme'] ?? null)
+                ? ($data['taxScheme']['id'] ?? 'VAT')
+                : ($data['taxScheme'] ?? 'VAT'),
+            $data['taxId'] ?? $data['vatNumber'] ?? null
+        ]);        
     }
 }

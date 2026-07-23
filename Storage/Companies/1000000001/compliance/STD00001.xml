@@ -15,9 +15,9 @@
     </ext:UBLExtensions>
     <cbc:ProfileID>reporting:1.0</cbc:ProfileID>
     <cbc:ID>STD00001</cbc:ID>
-    <cbc:UUID>3b7b40ae-7f04-4e54-9360-24b4a6c9f073</cbc:UUID>
-    <cbc:IssueDate>2026-07-22</cbc:IssueDate>
-    <cbc:IssueTime>00:04:18Z</cbc:IssueTime>
+    <cbc:UUID>e017cd84-2d5d-42b3-bc32-3d6932beba72</cbc:UUID>
+    <cbc:IssueDate>2026-07-23</cbc:IssueDate>
+    <cbc:IssueTime>23:16:00Z</cbc:IssueTime>
     <cbc:InvoiceTypeCode name="0100000">388</cbc:InvoiceTypeCode>
     <cbc:DocumentCurrencyCode>SAR</cbc:DocumentCurrencyCode>
     <cbc:TaxCurrencyCode>SAR</cbc:TaxCurrencyCode>
@@ -60,7 +60,7 @@
                 </cac:TaxScheme>
             </cac:PartyTaxScheme>
             <cac:PartyLegalEntity>
-                <cbc:RegistrationName>Alwadeh IT</cbc:RegistrationName>
+                <cbc:RegistrationName>Alwadeh IT Company</cbc:RegistrationName>
             </cac:PartyLegalEntity>
         </cac:Party>
     </cac:AccountingSupplierParty>
@@ -88,7 +88,7 @@
         </cac:Party>
     </cac:AccountingCustomerParty>
     <cac:Delivery>
-        <cbc:ActualDeliveryDate>2026-07-23</cbc:ActualDeliveryDate>
+        <cbc:ActualDeliveryDate>2026-07-24</cbc:ActualDeliveryDate>
     </cac:Delivery>
     <cac:PaymentMeans>
         <cbc:PaymentMeansCode>10</cbc:PaymentMeansCode>

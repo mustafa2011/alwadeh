@@ -12,6 +12,38 @@ class CompanyStorageRepository
     {
     }
     
+    public function loadCurrentCompany(): array
+    {
+        if (empty($_SESSION['company_crn'])) {
+            throw new Exception('No current company selected.');
+        }
+    
+        $crn = trim($_SESSION['company_crn']);
+    
+        $company = $this->getCompany($crn);
+    
+        if (!$company) {
+            throw new Exception("Company not found: {$crn}");
+        }
+    
+        $company['crn'] = $company['commercial_registration_number'];
+        $company['vat'] = $company['vat_number'];
+        
+        if (!empty($company['tax_scheme']['company_id_value'])) {
+            $company['vat'] = $company['tax_scheme']['company_id_value'];
+        }
+    
+    
+        $companyId = (int)$company['id'];
+    
+        $company['party'] = $this->getCompanyParty($companyId) ?? [];
+        $company['address'] = $this->getCompanyAddress($companyId) ?? [];
+        $company['tax_scheme'] = $this->getCompanyTaxScheme($companyId) ?? [];
+        $company['legal_entity'] = $this->getCompanyLegalEntity($companyId) ?? [];
+    
+        return $company;
+    }    
+    
     public function getCurrentCompany(): ?string
     {
         if (!empty($_SESSION['company_crn'])) {
@@ -70,47 +102,9 @@ class CompanyStorageRepository
         return $path;
     }
 
-    public function getInvoiceStateFile(): string
-    {
-        return COMPANY_PATH . DIRECTORY_SEPARATOR . 'invoice_state.json';
-    }
-
     public function getInvoicesDirectory(): string
     {
         return COMPANY_PATH . DIRECTORY_SEPARATOR . 'invoices';
-    }
-
-    public function loadInvoiceState(): array
-    {
-        $file = $this->getInvoiceStateFile();
-
-        if (!file_exists($file)) {
-            $state = [
-                'last_icv' => 0,
-                'last_invoice_hash' => '',
-                'last_uuid' => '',
-                'updated_at' => '',
-            ];
-
-            file_put_contents(
-                $file,
-                json_encode($state, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
-            );
-
-            return $state;
-        }
-
-        $state = json_decode(file_get_contents($file), true);
-
-        return is_array($state) ? $state : [];
-    }
-
-    public function saveInvoiceState(array $state): void
-    {
-        file_put_contents(
-            $this->getInvoiceStateFile(),
-            json_encode($state, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
-        );
     }
 
     public function csrPath(string $crn): string
@@ -173,38 +167,6 @@ class CompanyStorageRepository
         $stmt->execute([$companyId]);
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
-    
-    public function loadCurrentCompany(): array
-    {
-        if (empty($_SESSION['company_crn'])) {
-            throw new Exception('No current company selected.');
-        }
-    
-        $crn = trim($_SESSION['company_crn']);
-    
-        $company = $this->getCompany($crn);
-    
-        if (!$company) {
-            throw new Exception("Company not found: {$crn}");
-        }
-    
-        $company['crn'] = $company['commercial_registration_number'];
-        $company['vat'] = $company['vat_number'];
-        
-        if (!empty($company['tax_scheme']['company_id_value'])) {
-            $company['vat'] = $company['tax_scheme']['company_id_value'];
-        }
-    
-    
-        $companyId = (int)$company['id'];
-    
-        $company['party'] = $this->getCompanyParty($companyId) ?? [];
-        $company['address'] = $this->getCompanyAddress($companyId) ?? [];
-        $company['tax_scheme'] = $this->getCompanyTaxScheme($companyId) ?? [];
-        $company['legal_entity'] = $this->getCompanyLegalEntity($companyId) ?? [];
-    
-        return $company;
-    }    
 
     public function updateCurrentCompany(array $data): bool
     {

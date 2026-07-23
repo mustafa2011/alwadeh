@@ -23,7 +23,9 @@ class CertificateService
     {
         $this->settingsRepository = new CompanySettingsRepository();
         $this->storageRepository = new CompanyStorageRepository();
-        $this->certificateStorageRepository = new CertificateStorageRepository();
+        $this->certificateStorageRepository = new CertificateStorageRepository(
+            $this->storageRepository
+        );
         $this->companyService = new CompanyService();
         $this->complianceService = new ComplianceService();
         $this->certificateValidator = new CertificateValidator();
@@ -52,7 +54,7 @@ class CertificateService
     
         $uuid = generateUUID();
     
-        $commonName = getCommonNameByEnvironment($environment);
+        $commonName = $this->settingsRepository->getCommonNameByEnvironment();
    
         $this->storageRepository->backupCertificateFiles();
     
@@ -64,7 +66,6 @@ class CertificateService
         $settings = [
             'company_id'         => (int) $this->company['id'],
             'environment'        => $environment,
-        
             'vat_number'         => $this->company['tax_scheme']['company_id_value'] ?? '',
             'crn'                => $this->company['commercial_registration_number'] ?? '',
             'organization_name'  => $this->company['registration_name'] ?? '',
@@ -116,7 +117,7 @@ class CertificateService
 
         $csrPath = $this->storageRepository->csrPath($this->company['crn']);
 
-        $environment = getApiEnvironment();
+        $environment = $this->settingsRepository->getApiEnvironment();
     
         $api = $this->complianceService->createComplianceApi($environment);
     
@@ -131,7 +132,7 @@ class CertificateService
             $result->getSecret()
         );
   
-        updateCertificateValidity(
+        $this->certificateStorageRepository->updateCertificateValidity(
             (int)$this->company['id'],
             $result->getCertificate()
         );
@@ -140,7 +141,7 @@ class CertificateService
         
         $privateKey = $this->storageRepository->loadPK($this->company['crn']);
         
-        saveComplianceCertificate(
+        $this->certificateStorageRepository->saveComplianceCertificate(
             $result,
             $csr,
             $privateKey
@@ -169,7 +170,7 @@ class CertificateService
 
         $credentials = $this->certificateStorageRepository->loadComplianceCredentials();
        
-        $environment = getApiEnvironment();
+        $environment = $this->settingsRepository->getApiEnvironment();
         
         $supplier = $this->companyService->buildSupplier();
         
@@ -235,15 +236,13 @@ class CertificateService
 
         $csrPath = $this->storageRepository->csrPath($this->company['crn']);
 
-        $settings = $this->storageRepository->getCompanyZatcaSettings(); //  getCertificateSettings((int)$this->company['id']);
+        $settings = $this->storageRepository->getCompanyZatcaSettings();
     
         $this->storageRepository->backupCertificateFiles();
     
         $uuid = generateUUID();
     
-        $commonName = getCommonNameByEnvironment(
-            $settings['environment']
-        );
+        $commonName = $this->settingsRepository->getCommonNameByEnvironment();
                 
         $keyPath = $this->storageRepository->privateKeyPath($this->company['crn']);
     
@@ -271,7 +270,7 @@ class CertificateService
         $settings['generated_at'] = date('Y-m-d H:i:s');
         $settings['status'] = 'generated';
     
-        saveCertificateSettings($settings);
+        $this->certificateStorageRepository->saveCertificateSettings($settings);
     
         return [
             'success' => true,
@@ -295,7 +294,7 @@ class CertificateService
         $csr = $this->storageRepository->loadCSR($this->company['crn']);
 
     
-        $api = new ZatcaAPI(getApiEnvironment());
+        $api = new ZatcaAPI($this->settingsRepository->getApiEnvironment());
     
         $result = $api->renewProductionCertificate(
             $credentials['certificate'],
@@ -306,9 +305,10 @@ class CertificateService
     
         $this->storageRepository->backupCertificateFiles(false, false);
     
-        saveProductionCredentials($result);
+        $this->certificateStorageRepository->saveProductionCredentials($result);
+        $this->settingsRepository->save($this->settingsRepository->loadSettings());
     
-        updateCertificateValidity(
+        $this->certificateStorageRepository->updateCertificateValidity(
             (int)$this->company['id'],
             $result->getCertificate()
         );

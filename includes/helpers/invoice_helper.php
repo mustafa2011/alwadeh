@@ -13,6 +13,7 @@
  */
 use Saleh7\Zatca\Mappers\InvoiceMapper;
 use Saleh7\Zatca\GeneratorInvoice;
+use Saleh7\Zatca\ZatcaApi;
 
 
 if (!function_exists('buildCustomer')) {
@@ -359,36 +360,6 @@ if (!function_exists('generateInvoiceXml')) {
 }
 
 /**
- * Load current invoice chain state.
- */
-function loadInvoiceState(string $stateFile): array {
-    if (!file_exists($stateFile)) {
-        return [
-            'last_icv' => 0,
-            'last_invoice_hash' => '',
-            'last_uuid' => '',
-            'last_invoice_number' => '',
-            'last_invoice_type' => '',
-            'last_submission_type' => '',
-            'updated_at' => ''
-        ];
-    }
-
-    $state = json_decode(file_get_contents($stateFile), true);
-
-    if (!is_array($state)) {
-        throw new Exception('Invalid invoice_state.json');
-    }
-
-    return array_merge([
-        'last_icv' => 0,
-        'last_invoice_hash' => '',
-        'last_uuid' => '',
-        'updated_at' => ''
-    ], $state);
-}
-
-/**
  * Save invoice chain state.
  */
 function saveInvoiceState(
@@ -415,23 +386,6 @@ function saveInvoiceState(
             JSON_PRETTY_PRINT| JSON_UNESCAPED_UNICODE
         )
     );
-}
-
-function getNextInvoiceChain(string $stateFile ): array {
-    $state = loadInvoiceState($stateFile);
-    return [
-        'icv' => ((int)$state['last_icv']) + 1,
-        'previous_hash' => empty($state['last_invoice_hash'])
-            ? getInitialPIH()
-            : $state['last_invoice_hash'],
-        'previous_uuid' => $state['last_uuid']
-    ];
-}
-
-function getPreviousInvoiceHash(string $stateFile): string {
-    $state = loadInvoiceState($stateFile);
-
-    return (string)$state['last_invoice_hash'];
 }
 
 /**
@@ -488,31 +442,6 @@ function submitInvoice(
     ];
 }
 
-function createInvoiceApi(): \Saleh7\Zatca\ZatcaAPI {
-    return new \Saleh7\Zatca\ZatcaAPI(
-        getApiEnvironment()
-    );
-}
-
-function commitInvoiceChain(
-    string $stateFile,
-    array $invoice,
-    array $chain,
-    array $signed,
-    array $submit
-): void {
-    saveInvoiceState(
-        $stateFile,
-        [
-            'last_icv' => $chain['icv'],
-            'last_invoice_hash' => $signed['hash'],
-            'last_uuid' => $invoice['uuid'],
-            'last_invoice_number' => $invoice['id'],
-            'last_invoice_type' => $invoice['invoice_type'],
-            'last_submission_type' => $submit['submission_type']
-        ]
-    );        
-}
 
 function getInitialPIH(): string
 {

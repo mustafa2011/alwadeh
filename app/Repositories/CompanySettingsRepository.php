@@ -3,15 +3,20 @@
 namespace App\Repositories;
 
 use App\Core\Database;
+use App\Repositories\CompanyStorageRepository;
+use \Saleh7\Zatca\CertificateBuilder;
 use PDO;
+use Exception;
 
 class CompanySettingsRepository
 {
     private PDO $db;
+    protected CompanyStorageRepository $storage;
 
     public function __construct()
     {
         $this->db = Database::getConnection();
+        $this->storage = new CompanyStorageRepository();
     }
 
     public function find(int $companyId): ?array
@@ -147,4 +152,71 @@ class CompanySettingsRepository
             $companyId
         ]);
     }
+
+    public function loadSettings(): array
+    {
+        $company = $this->storage->loadCurrentCompany();
+
+        $stmt = $this->db->prepare("
+            SELECT *
+            FROM company_zatca_settings
+            WHERE company_id = ?
+            LIMIT 1
+        ");
+
+        $stmt->execute([
+            $company['id']
+        ]);
+
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+    }  
+
+    public function getEnvironment(): string
+    {
+        $settings = $this->loadSettings();
+    
+        if (empty($settings['environment'])) {
+            throw new Exception(
+                'Environment not found in certificate settings.'
+            );
+        }
+    
+        return $settings['environment'];
+    }
+
+    public function getApiEnvironment()
+    {
+        switch ($this->getEnvironment()) {
+    
+            case CertificateBuilder::ENV_NONPROD:
+                return 'sandbox';
+    
+            case CertificateBuilder::ENV_SIMULATION:
+                return 'simulation';
+    
+            case CertificateBuilder::ENV_PRODUCTION:
+                return 'production';
+    
+            default:
+                throw new Exception('Invalid environment.');
+        }
+    }  
+    
+    function getCommonNameByEnvironment()
+    {
+        switch ($this->getEnvironment()) {
+
+            case CertificateBuilder::ENV_SIMULATION:
+                return 'PREZATCA-Code-Signing';
+
+            case CertificateBuilder::ENV_NONPROD:
+                return 'TSTZATCA-Code-Signing';
+
+            case CertificateBuilder::ENV_PRODUCTION:
+                return 'ZATCA-Code-Signing';
+
+            default:
+                throw new Exception('Invalid environment.');
+        }
+    }    
 }

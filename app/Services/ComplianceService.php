@@ -1,6 +1,9 @@
 <?php
 
 namespace App\Services;
+
+use App\Repositories\CertificateStorageRepository;
+use App\Repositories\CompanyStorageRepository;
 use Saleh7\Zatca\ZatcaAPI;
 use Saleh7\Zatca\Api\ProductionCertificateResult;
 use Saleh7\Zatca\Helpers\Certificate;
@@ -9,7 +12,13 @@ use Exception;
 
 class ComplianceService
 {
-    public function __construct(){}
+    protected CertificateStorageRepository $certificateStorageRepository;
+    protected CompanyStorageRepository $companyStorageRepository;
+    public function __construct()
+    {
+        $this->companyStorageRepository = new CompanyStorageRepository();
+        $this->certificateStorageRepository = new CertificateStorageRepository($this->companyStorageRepository);
+    }
 
     function requestProductionCertificate(
         ZatcaAPI $api,
@@ -22,7 +31,7 @@ class ComplianceService
             $credentials['request_id']
         );
     
-        saveProductionCredentials($result);
+        $this->certificateStorageRepository->saveProductionCredentials($result);
     
         return $result;
     }    

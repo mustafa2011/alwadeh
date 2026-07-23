@@ -128,6 +128,7 @@ class ComposerStaticInitb100ddd12d04cb7891edfb8dae3a0953
         'App\\Services\\CompanyService' => __DIR__ . '/../..' . '/app/Services/CompanyService.php',
         'App\\Services\\CompanyValidator' => __DIR__ . '/../..' . '/app/Services/CompanyValidator.php',
         'App\\Services\\ComplianceService' => __DIR__ . '/../..' . '/app/Services/ComplianceService.php',
+        'App\\Services\\InvoiceCalculationService' => __DIR__ . '/../..' . '/app/Services/InvoiceCalculationService.php',
         'App\\Services\\InvoicePersistenceService' => __DIR__ . '/../..' . '/app/Services/InvoicePersistenceService.php',
         'App\\Services\\InvoiceService' => __DIR__ . '/../..' . '/app/Services/InvoiceService.php',
         'App\\Services\\Zatca\\DatabaseInvoiceProvider' => __DIR__ . '/../..' . '/app/Services/Zatca/DatabaseInvoiceProvider.php',

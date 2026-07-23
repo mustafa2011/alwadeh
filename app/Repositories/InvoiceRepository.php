@@ -86,4 +86,23 @@ class InvoiceRepository
 
         return (int) $this->db->lastInsertId();
     }
+
+    public function findLastIssuedInvoice(int $companyId): ?array
+    {
+        $stmt = $this->db->prepare("
+            SELECT
+                icv,
+                hash
+            FROM invoices
+            WHERE company_id = ?
+            ORDER BY icv DESC
+            LIMIT 1
+        ");
+
+        $stmt->execute([$companyId]);
+
+        $invoice = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $invoice ?: null;
+    }       
 }

@@ -2,13 +2,21 @@
 
 namespace App\Builders;
 
+use App\Services\InvoiceDocumentService;
+
 class InvoiceBuilder
 {
+    private InvoiceDocumentService $documentService;
+
+    public function __construct()
+    {
+        $this->documentService = new InvoiceDocumentService();
+    }
+
     public function prepare(
         string $type,
         array $supplier,
         ?string $environment,
-        array $invoiceState,
         array $chain,
         array $invoiceData,
     ): array {
@@ -17,7 +25,6 @@ class InvoiceBuilder
                 'invoice_type' => $type,
                 'supplier' => $supplier,
                 'environment' => $environment,
-                'invoice_state' => $invoiceState,
             ],
             $invoiceData
         );
@@ -46,7 +53,7 @@ class InvoiceBuilder
             if (($document['id'] ?? '') === 'PIH') {
                 $document['attachment'] = [
                     'content' => empty($chain['previous_hash'])
-                        ? getInitialPIH()
+                        ? $this->documentService->initialPIH()
                         : $chain['previous_hash']
                 ];
                 $hasPIH = true;
@@ -67,7 +74,7 @@ class InvoiceBuilder
                 'id' => 'PIH',
                 'attachment' => [
                     'content' => empty($chain['previous_hash'])
-                        ? getInitialPIH()
+                        ? $this->documentService->initialPIH()
                         : $chain['previous_hash']
                 ]
             ];
@@ -76,5 +83,15 @@ class InvoiceBuilder
         $invoice['invoice_chain'] = $chain;
 
         return $invoice;
+    }
+
+    public function build(
+        array $invoice,
+        array $totals
+    ): array {
+        return array_replace_recursive(
+            $invoice,
+            $totals
+        );
     }
 }

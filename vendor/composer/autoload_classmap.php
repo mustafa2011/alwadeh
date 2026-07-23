@@ -29,6 +29,7 @@ return array(
     'App\\Services\\CompanyService' => $baseDir . '/app/Services/CompanyService.php',
     'App\\Services\\CompanyValidator' => $baseDir . '/app/Services/CompanyValidator.php',
     'App\\Services\\ComplianceService' => $baseDir . '/app/Services/ComplianceService.php',
+    'App\\Services\\InvoiceCalculationService' => $baseDir . '/app/Services/InvoiceCalculationService.php',
     'App\\Services\\InvoicePersistenceService' => $baseDir . '/app/Services/InvoicePersistenceService.php',
     'App\\Services\\InvoiceService' => $baseDir . '/app/Services/InvoiceService.php',
     'App\\Services\\Zatca\\DatabaseInvoiceProvider' => $baseDir . '/app/Services/Zatca/DatabaseInvoiceProvider.php',
