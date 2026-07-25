@@ -5,16 +5,22 @@ namespace App\Services;
 use App\Repositories\CertificateStorageRepository;
 use App\Repositories\CompanyStorageRepository;
 use Saleh7\Zatca\ZatcaAPI;
+use App\Repositories\InvoiceRepository;
+use App\Core\Database;
 
 class InvoiceSubmissionService
 {
     protected CompanyStorageRepository $storage;
     private CertificateStorageRepository $certificateRepository;
+    private InvoiceRepository $invoiceRepository;
 
     public function __construct()
     {
         $this->storage = new CompanyStorageRepository();
         $this->certificateRepository = new CertificateStorageRepository($this->storage);
+        $this->invoiceRepository = new InvoiceRepository(
+            Database::getConnection()
+        );
     }
 
     public function submit(
@@ -36,11 +42,19 @@ class InvoiceSubmissionService
         );
 
         if (!$isSimplified && !empty($result['cleared_xml'])) {
-            $this->storage->saveClearedInvoice(
+
+            $path = $this->storage->saveClearedInvoice(
                 $package['signed_xml_path'],
                 $package['invoice_id'],
                 $result['cleared_xml']
             );
+        
+            $this->invoiceRepository->updateZatcaXmlPath(
+                (int)$package['db_invoice_id'],
+                $path
+            );
+        
+            $result['zatca_xml_path'] = $path;
         }
 
         return $result;

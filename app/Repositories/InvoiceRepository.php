@@ -151,6 +151,24 @@ class InvoiceRepository
         ]);
     }  
 
+    public function updateZatcaXmlPath(
+        int $invoiceId,
+        string $path
+    ): void {
+    
+        $stmt = $this->db->prepare("
+            UPDATE invoices
+            SET zatca_xml_file_path = ?
+            WHERE id = ?
+        ");
+    
+        $stmt->execute([
+            $path,
+            $invoiceId
+        ]);
+    
+    }
+        
     public function findById(int $invoiceId): ?array
     {
         $stmt = $this->db->prepare("

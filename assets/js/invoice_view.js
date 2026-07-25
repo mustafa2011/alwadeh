@@ -319,19 +319,25 @@ function renderInvoice(invoice) {
     </div>
     `;
     
-    html+=`
+    html += `
     <div class="card shadow-sm">
         <div class="card-header fw-bold">
             Actions
         </div>
         <div class="card-body d-flex flex-wrap gap-2">
-            <a href="${window.APP.baseUrl}/api/invoices/xml.php?id=${invoice.id}" class="btn btn-outline-primary">
+            <a href="${window.APP.baseUrl}/api/invoices/view_xml.php?id=${invoice.id}"
+               target="_blank"
+               class="btn btn-outline-primary">
                 View XML
             </a>
-            <a href="${window.APP.baseUrl}/api/invoices/download_xml.php?id=${invoice.id}" class="btn btn-outline-primary">
+    
+            <a href="${window.APP.baseUrl}/api/invoices/download_xml.php?id=${invoice.id}"
+               class="btn btn-outline-primary">
                 Download XML
             </a>
-            <a href="${window.APP.baseUrl}/api/invoices/download_signed_xml.php?id=${invoice.id}" class="btn btn-outline-success">
+    
+            <a href="${window.APP.baseUrl}/api/invoices/download_signed_xml.php?id=${invoice.id}"
+               class="btn btn-outline-success">
                 Download Signed XML
             </a>
     `;
@@ -361,6 +367,57 @@ function renderInvoice(invoice) {
         </div>
     </div>
     `;
-        
+
     document.getElementById("invoiceView").innerHTML = html;        
+}
+
+function viewXml(invoiceId){
+
+    fetch(window.APP.baseUrl + "/api/invoices/view_xml.php", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            invoice_id: invoiceId
+        })
+    })
+    .then(async (response) => {
+
+        const text = await response.text();
+
+        try{
+            return JSON.parse(text);
+        }catch(e){
+            console.error(text);
+            throw new Error("Invalid JSON response from server.");
+        }
+
+    })
+    .then(result => {
+
+        if(!result.success){
+
+            showAlert(
+                "invoiceAlert",
+                "danger",
+                result.message
+            );
+
+            return;
+        }
+
+        document
+        .getElementById("viewXml")
+        .addEventListener("click", function(){
+        
+            viewXml(
+                document.getElementById("invoiceId").value
+            );
+        
+        });
+
+    })
+    .catch(console.error);
+
 }

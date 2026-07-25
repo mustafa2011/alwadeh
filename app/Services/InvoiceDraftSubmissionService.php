@@ -33,6 +33,7 @@ class InvoiceDraftSubmissionService
         }
 
         $package = [
+            'db_invoice_id' => $invoiceId,
             'invoice_id' => $invoice['invoice_number'],
             'uuid' => $invoice['invoice_uuid'],
             'hash' => $invoice['invoice_hash'],
@@ -46,7 +47,6 @@ class InvoiceDraftSubmissionService
                 ]
             ]
         ];
-
         $api = $this->chainService->api();
 
         $result = $this->submissionService->submit(
@@ -84,5 +84,6 @@ class InvoiceDraftSubmissionService
         
         }
         return $result;
+        
     }
 }
