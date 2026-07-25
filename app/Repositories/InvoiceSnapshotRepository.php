@@ -155,4 +155,153 @@ class InvoiceSnapshotRepository
             $data['taxId'] ?? $data['vatNumber'] ?? null
         ]);        
     }
+
+    
+    public function findSupplier(int $invoiceId): ?array
+    {
+        $stmt = $this->db->prepare("
+            SELECT *
+            FROM invoice_supplier_party
+            WHERE invoice_id = ?
+            LIMIT 1
+        ");
+    
+        $stmt->execute([$invoiceId]);
+    
+        $supplier = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+        if (!$supplier) {
+            return null;
+        }
+    
+        $supplier['address'] = $this->findAddress(
+            $invoiceId,
+            'supplier',
+            $supplier['id']
+        );
+    
+        $supplier['tax'] = $this->findTax(
+            $invoiceId,
+            'supplier',
+            $supplier['id']
+        );
+    
+        $supplier['legal_entity'] = $this->findLegalEntity(
+            $invoiceId,
+            'supplier',
+            $supplier['id']
+        );
+    
+        return $supplier;
+    }
+    
+    public function findCustomer(int $invoiceId): ?array
+    {
+        $stmt = $this->db->prepare("
+            SELECT *
+            FROM invoice_customer_party
+            WHERE invoice_id = ?
+            LIMIT 1
+        ");
+    
+        $stmt->execute([$invoiceId]);
+    
+        $customer = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+        if (!$customer) {
+            return null;
+        }
+    
+        $customer['address'] = $this->findAddress(
+            $invoiceId,
+            'customer',
+            $customer['id']
+        );
+    
+        $customer['tax'] = $this->findTax(
+            $invoiceId,
+            'customer',
+            $customer['id']
+        );
+    
+        $customer['legal_entity'] = $this->findLegalEntity(
+            $invoiceId,
+            'customer',
+            $customer['id']
+        );
+    
+        return $customer;
+    }
+    
+    private function findAddress(
+        int $invoiceId,
+        string $partyType,
+        int $partyId
+    ): ?array
+    {
+        $stmt = $this->db->prepare("
+            SELECT *
+            FROM invoice_party_address
+            WHERE invoice_id = ?
+            AND party_type = ?
+            AND party_id = ?
+            LIMIT 1
+        ");
+    
+        $stmt->execute([
+            $invoiceId,
+            $partyType,
+            $partyId
+        ]);
+    
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+    }   
+    
+    private function findTax(
+        int $invoiceId,
+        string $partyType,
+        int $partyId
+    ): ?array
+    {
+        $stmt = $this->db->prepare("
+            SELECT *
+            FROM invoice_party_tax_scheme
+            WHERE invoice_id = ?
+            AND party_type = ?
+            AND party_id = ?
+            LIMIT 1
+        ");
+    
+        $stmt->execute([
+            $invoiceId,
+            $partyType,
+            $partyId
+        ]);
+    
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+    }
+    
+    private function findLegalEntity(
+        int $invoiceId,
+        string $partyType,
+        int $partyId
+    ): ?array
+    {
+        $stmt = $this->db->prepare("
+            SELECT *
+            FROM invoice_party_legal_entity
+            WHERE invoice_id = ?
+            AND party_type = ?
+            AND party_id = ?
+            LIMIT 1
+        ");
+    
+        $stmt->execute([
+            $invoiceId,
+            $partyType,
+            $partyId
+        ]);
+    
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+    }    
 }

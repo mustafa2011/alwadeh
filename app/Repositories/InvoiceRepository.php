@@ -174,4 +174,50 @@ class InvoiceRepository
     
         return $invoice ?: null;
     }    
+
+
+    public function findItems(int $invoiceId): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT *
+            FROM invoice_lines
+            WHERE invoice_id = ?
+            ORDER BY id
+        ");
+    
+        $stmt->execute([$invoiceId]);
+    
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+    public function findTotals(int $invoiceId): ?array
+    {
+        $stmt = $this->db->prepare("
+            SELECT *
+            FROM invoice_totals
+            WHERE invoice_id = ?
+            LIMIT 1
+        ");
+    
+        $stmt->execute([$invoiceId]);
+    
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+        return $row ?: null;
+    }
+    
+    public function findTaxTotals(int $invoiceId): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT *
+            FROM invoice_tax_totals
+            WHERE invoice_id = ?
+            ORDER BY id
+        ");
+    
+        $stmt->execute([$invoiceId]);
+    
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+  
 }
