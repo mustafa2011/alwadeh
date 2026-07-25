@@ -13,27 +13,18 @@ try {
     $stmt = $pdo->prepare(
     "
     SELECT
-
         i.id,
         i.invoice_number,
         i.invoice_kind,
         i.issue_date,
         i.invoice_status,
-
+        i.updated_at,
         z.clearance_status,
         z.reporting_status
-
-
     FROM invoices i
-
-
     LEFT JOIN invoice_zatca z
-
     ON z.invoice_id = i.id
-
-
     ORDER BY i.id DESC
-
     "
     );
 

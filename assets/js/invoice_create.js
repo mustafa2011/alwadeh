@@ -14,8 +14,28 @@ document.addEventListener(
                 "addItem"
             );
 
+            const invoiceKind=document.getElementById("invoiceKind");
+            const customerBox=document.getElementById("customerSection");
+            const customerSelect=document.getElementById("customerSelect");
+            
+            function toggleCustomer(){
+                if(invoiceKind.value==="standard"){
+                    customerBox.style.display="block";
+                    loadCustomers();
+                }else{
+                    customerBox.style.display="none";
+                    customerSelect.value="";
+                }
+            }
+            
+            invoiceKind.addEventListener("change",toggleCustomer);
+            
+            toggleCustomer();
 
 
+
+
+            
         addItem.addEventListener(
             "click",
             function(){
@@ -82,73 +102,57 @@ document.addEventListener(
             }
         );
 
-
-
-
+        document
+        .getElementById("saveDraft")
+        .addEventListener("click", function () {    
+            submitInvoice = false;
+            form.requestSubmit();
+        });
 
         form.addEventListener(
             "submit",
             function(e){
-
                 e.preventDefault();
-
                 let items = [];
-
                 document
                 .querySelectorAll(
                     "#invoiceItems tr"
                 )
                 .forEach(
                     function(row){
-
                         let name =
                             row.querySelector(
                                 ".item-name"
                             ).value;
-
                         let qty =
                             parseFloat(
                                 row.querySelector(
                                     ".item-qty"
                                 ).value
                             );
-
                         let price =
                             parseFloat(
                                 row.querySelector(
                                     ".item-price"
                                 ).value
                             );
-
                         let tax =
                             parseFloat(
                                 row.querySelector(
                                     ".item-tax"
                                 ).value
                             );
-
                         items.push({
-
                             name:name,
-
                             quantity:qty,
-
                             unitPrice:price,
-
                             unitCode:"PCE",
-
                             allowanceCharges:[],
-
                             taxCategory:{
-
                                 id:"S",
-
                                 percent:tax
-
                             }
-
                         });
-
                     }
                 );
 
@@ -158,24 +162,31 @@ document.addEventListener(
                         "invoiceKind"
                     )
                     .value;
-
                     let invoiceData = {
                         invoiceNumber: document.getElementById("invoiceNumber").value,
                         invoiceType: {
                             invoice: invoiceType,
                             type: "invoice"
                         },
-                        // customerId: selectedCustomerId || null,
-                        customerId: 1,
+                        customerId: document.getElementById("customerSelect").value || null,
                         items: items
                     };
-                    
+
                     if (invoiceType === "standard" && !invoiceData.customerId) {
-                        openCustomerModal();
+                        showAlert(
+                            "invoiceAlert",
+                            "danger",
+                            "Please select customer for standard invoice."
+                        );
                         return;
                     }
-                    
-                    createInvoice(invoiceData);
+                    createInvoice(
+                        invoiceData,
+                        submitInvoice
+                    );
+
+                    submitInvoice = true;                    
+                    // createInvoice(invoiceData);
 
             }
         );
@@ -183,7 +194,10 @@ document.addEventListener(
     }
 );
 
-function createInvoice(data){
+function createInvoice(data, submit = true){
+
+    data.submit = submit;
+
     fetch(window.APP.baseUrl + "/api/invoices/create.php", {
         method: "POST",
         headers: {
@@ -193,7 +207,7 @@ function createInvoice(data){
     })
     .then(async (response) => {
         const text = await response.text();
-    
+
         try {
             return JSON.parse(text);
         } catch (e) {
@@ -202,11 +216,42 @@ function createInvoice(data){
         }
     })
     .then(result => {
-        // التعامل مع النتيجة
+        showAlert(
+            "invoiceAlert",
+            result.success ? "success" : "danger",
+            result.message
+        );
     })
     .catch(error => {
         console.error(error);
     });
 
+}
 
+function loadCustomers(){
+    customerSelect.innerHTML='<option value="">Select Customer</option>';
+    fetch(window.APP.baseUrl+"/api/customers/list.php")
+    .then(response=>response.json())
+    .then(result=>{
+        customerSelect.innerHTML='<option value="">Select Customer</option>';
+        if(!result.success){
+            return;
+        }
+        result.data.forEach(customer=>{
+            customerSelect.innerHTML += `
+            <option value="${customer.id}">
+                ${customer.customer_name}
+            </option>`;
+        });
+    });
+}
+
+function showAlert(containerId, type, message)
+{
+    document.getElementById(containerId).innerHTML = `
+        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
 }

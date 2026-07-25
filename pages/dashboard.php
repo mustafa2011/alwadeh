@@ -235,6 +235,12 @@
 
                     </a>                    
 
+                    <a href="?page=customers"
+                        class="btn btn-outline-success">
+                        <i class="bi bi-people"></i>
+                        Customers
+                    </a>
+
                 </div>
 
             </div>

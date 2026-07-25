@@ -36,21 +36,34 @@ class InvoicePersistenceService
         array $chain,
         array $company,
         array $submitResult,
-        array $invoiceData = []
+        array $invoiceData
     ): int {
         $this->db->beginTransaction();
-          
-        try {           
+        try {
+            if (($submitResult['status'] ?? null) === 'draft') {
+                $status = 'draft';            
+            } elseif (($submitResult['submission_type'] ?? null) === 'reporting'
+                && $submitResult['success']) {            
+                $status = 'reported';            
+            } elseif (($submitResult['submission_type'] ?? null) === 'clearance'
+                && $submitResult['success']) {            
+                $status = 'cleared';            
+            } else {            
+                $status = 'rejected';            
+            }            
+
             $invoiceId = $this->invoiceRepository->create([
                 'company_id' => $company['id'],
-                'customer_id' => $invoiceData['customerId'],
+                'customer_id' => $invoice['invoiceType']['invoice'] === 'standard'
+                    ? ($invoiceData['customerId'] ?? null)
+                    : null,
                 'invoice_number' => $invoice['id'],
                 'invoice_uuid' => $package['uuid'],
                 'invoice_type' => $invoice['invoiceType']['type'] ?? 'invoice',
-                'invoice_kind' => $invoice['invoice_type'] ?? 'simplified',
+                'invoice_kind' => $invoice['invoiceType']['invoice'] ?? 'simplified',
                 'issue_date' => $invoice['issueDate'],
                 'supply_date' => $invoice['issueDate'],
-                'issue_time' => $invoice['issueDate'] . ' ' . $invoice['issueTime'],
+                'issue_time' => $invoice['issueTime'],
                 'currency_code' => $invoice['currencyCode'] ?? 'SAR',
                 'document_currency_code' => $invoice['currencyCode'] ?? 'SAR',
                 'tax_currency_code' => $invoice['taxCurrencyCode'] ?? 'SAR',
@@ -59,46 +72,61 @@ class InvoicePersistenceService
                 'invoice_hash' => $package['hash'],
                 'xml_file_path' => $package['xml_path'],
                 'signed_xml_file_path' => $package['signed_xml_path'],
-                'invoice_status' => ($invoice['invoice_type'] === 'standard')
-                    ? 'cleared'
-                    : 'reported',
+                'invoice_status' => $status,
                 'qr_code' => $package['qr_code'] ?? null,
-                'created_by' => $_SESSION['user']['id'] ?? null,            
+                'created_by' => $_SESSION['user']['id'] ?? null,
             ]);
+
+            if (($submitResult['status'] ?? null) === 'draft') {
+
+                $submitResult = [
+                    'success' => true,
+                    'status' => 'PENDING',
+                    'statusCode' => null,
+                    'warnings' => [],
+                    'errors' => [],
+                ];
+            
+            }            
+            
             $this->invoiceZatcaRepository->create(
                 $invoiceId,
                 $package,
                 $chain,
                 $submitResult
             );
+    
             $this->invoiceTotalsRepository->create(
                 $invoiceId,
                 $invoice['legalMonetaryTotal']
             );
+    
             $this->invoiceTaxTotalsRepository->create(
                 $invoiceId,
                 $invoice['taxTotal']
             );
+    
             $this->invoiceLineRepository->create(
                 $invoiceId,
                 $invoice['invoiceLines']
             );
-            
+    
             $this->invoiceSnapshotRepository->create(
                 $invoiceId,
                 $invoice,
                 $invoiceData
             );
-            
+    
             $this->db->commit();
-
+    
             return $invoiceId;
+    
         } catch (\Throwable $e) {
-
+    
             $this->db->rollBack();
-        
+    
             throw $e;
-        
+    
         }
     }
 }

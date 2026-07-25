@@ -70,7 +70,7 @@ class InvoiceRepository
             'invoice_kind' => $invoice['invoice_kind'],
             'issue_date' => $invoice['issue_date'],
             'issue_time' => $invoice['issue_time'],
-            'supply_date' => $invoice['issue_time'],
+            'supply_date' => $invoice['issue_date'],            
             'currency_code' => $invoice['currency_code'],
             'document_currency_code' => $invoice['document_currency_code'],
             'tax_currency_code' => $invoice['tax_currency_code'],
@@ -92,7 +92,7 @@ class InvoiceRepository
         $stmt = $this->db->prepare("
             SELECT
                 icv,
-                hash
+                invoice_hash
             FROM invoices
             WHERE company_id = ?
             ORDER BY icv DESC
@@ -104,5 +104,74 @@ class InvoiceRepository
         $invoice = $stmt->fetch(PDO::FETCH_ASSOC);
 
         return $invoice ?: null;
-    }       
+    }   
+    
+    public function findDraft(int $invoiceId): ?array
+    {
+        $stmt = $this->db->prepare("
+            SELECT
+                id,
+                company_id,
+                invoice_number,
+                invoice_uuid,
+                invoice_kind,
+                invoice_hash,
+                xml_file_path,
+                signed_xml_file_path,
+                invoice_status
+            FROM invoices
+            WHERE id = ?
+            AND invoice_status = 'draft'
+            LIMIT 1
+        ");
+    
+        $stmt->execute([$invoiceId]);
+    
+        $invoice = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+        return $invoice ?: null;
+    }
+    
+    public function updateStatusAfterSubmission(
+        int $invoiceId,
+        string $status
+    ): void
+    {
+        $stmt = $this->db->prepare("
+            UPDATE invoices
+            SET
+                invoice_status = :status,
+                updated_at = NOW()
+            WHERE id = :id
+        ");
+    
+        $stmt->execute([
+            'status' => $status,
+            'id' => $invoiceId
+        ]);
+    }  
+
+    public function findById(int $invoiceId): ?array
+    {
+        $stmt = $this->db->prepare("
+            SELECT
+                i.*,
+                z.clearance_status,
+                z.reporting_status,
+                z.zatca_status_code,
+                z.submitted_at,
+                z.cleared_at
+            FROM invoices i
+            LEFT JOIN invoice_zatca z
+                ON z.invoice_id = i.id
+            WHERE i.id = ?
+            LIMIT 1
+        ");
+    
+        $stmt->execute([$invoiceId]);
+    
+        $invoice = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+        return $invoice ?: null;
+    }    
 }

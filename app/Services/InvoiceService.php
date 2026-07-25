@@ -13,7 +13,6 @@ use App\Services\InvoiceCalculationService;
 use App\Services\InvoiceChainService;
 use App\Services\InvoiceSubmissionService;
 use App\Services\InvoiceXmlService;
-use App\Services\InvoiceSigningService;
 use App\Repositories\CompanySettingsRepository;
 
 use App\Core\Database;
@@ -35,7 +34,6 @@ class InvoiceService
     private InvoiceChainService $invoiceChainService;
     private InvoiceSubmissionService $invoiceSubmissionService;
     private InvoiceXmlService $invoiceXmlService;
-    private InvoiceSigningService $invoiceSigningService;
     private CompanySettingsRepository $companySettingsRepository;
 
     public function __construct() {
@@ -53,15 +51,21 @@ class InvoiceService
         $this->invoiceChainService = new InvoiceChainService();
         $this->invoiceSubmissionService = new InvoiceSubmissionService(); 
         $this->invoiceXmlService = new InvoiceXmlService();   
-        $this->invoiceSigningService = new InvoiceSigningService();
         $this->companySettingsRepository = new CompanySettingsRepository();
     }
 
-    public function createInvoice(array $invoiceData): array {
-        return $this->issueInvoice($invoiceData, false);
+    // public function createInvoice(array $invoiceData): array {
+    //     return $this->issueInvoice($invoiceData, false);
+    // }
+    public function createInvoice(array $invoiceData): array
+    {
+        return $this->issueInvoice(
+            $invoiceData,
+            $invoiceData['submit'] ?? true
+        );
     }
-
-    public function issueInvoice( array $invoiceData, bool $submit = true): array  {
+    
+    public function issueInvoice(array $invoiceData, bool $submit = true): array  {
 
         $getSettings = $this->companySettingsRepository->loadSettings();
         $company = $this->storageRepository->loadCurrentCompany();
@@ -69,12 +73,15 @@ class InvoiceService
         $this->invoiceValidator->validateGenerationRequirements( $company, $getSettings);
         $type = $this->invoiceValidator->getInvoiceType($invoiceData);
 
-        $chain = $this->invoiceChainService->next($company['company_id']);        
+        $chain = $this->invoiceChainService->next($company['id']);        
 
-        $invoiceData['customer'] =
-        $this->customerRepository->findForInvoice(
-            $invoiceData['customerId']
-        );    
+        if ($type === 'standard') {
+            $invoiceData['customer'] = $this->customerRepository->findForInvoice(
+                $invoiceData['customerId']
+            );
+        } else {
+            $invoiceData['customer'] = [];
+        }           
         $invoice = $this->invoiceBuilder->prepare(
             $type,
             $this->companyService->buildSupplier(),
@@ -82,25 +89,40 @@ class InvoiceService
             $chain,
             $invoiceData
         );    
-        
+       
         if (!empty($invoiceData['items'])) {
             $totals = $this->invoiceCalculationService->calculate($invoiceData['items']);
             $invoice = $this->invoiceBuilder->build($invoice, $totals);
         }        
 
-        $package = $this->buildSignedInvoice(
+        $package = $this->invoiceXmlService->buildPackage(
             $invoice,
             $this->storageRepository->getInvoicesDirectory()
-        ); 
-               
+        );
+
         $api = $this->invoiceChainService->api();
-        $isSimplified = ($invoice['invoice_type'] === 'simplified');
-        $submitResult = $this->invoiceSubmissionService->submit(
-            $api,
-            $package,
-            $isSimplified
-        );      
-        if (!$isSimplified && !empty($submitResult['cleared_xml'])) {        
+
+        $submitResult = null;
+
+        if ($submit) {
+            $api = $this->invoiceChainService->api();
+            $submitResult = $this->invoiceSubmissionService->submit(
+                $api,
+                $package
+            );
+        } else {
+            $submitResult = [
+                'success' => true,
+                'status' => 'draft'
+            ];
+        }
+        
+        $isSimplified = ($type === 'simplified');
+        if (
+            $submit &&
+            !$isSimplified &&
+            !empty($submitResult['cleared_xml'])
+        ) {                           
             file_put_contents(
                 dirname($package['signed_xml_path'])
                 . DIRECTORY_SEPARATOR
@@ -108,7 +130,9 @@ class InvoiceService
                 . '_zatca.xml',
                 $submitResult['cleared_xml']
             );        }
-        if ($submitResult['success']) {                  
+
+        if ($submitResult['success']) {
+
             $this->invoicePersistenceService->save(
                 $invoice,
                 $package,
@@ -117,14 +141,30 @@ class InvoiceService
                 $submitResult,
                 $invoiceData
             );
-        }
         
+        }    
+        $resultSaved = [
+            'invoice_kind' => $invoice['invoiceType']['invoice'] ?? null,
+            'customer' => $invoiceData['customerId'] ?? null
+        ];                  
         return [
             'success' => $submitResult['success'],
             'message' =>
-                $submitResult['success']
-                    ? 'Invoice submitted successfully.'
-                    : 'Invoice submission failed.',
+                ($submitResult['status'] ?? null) === 'draft'
+                    ? 'Draft invoice created successfully.'
+                    : (
+                        ($submitResult['submission_type'] ?? null) === 'clearance'
+                            ? (
+                                $submitResult['success']
+                                    ? 'Invoice cleared successfully.'
+                                    : 'Invoice clearance failed.'
+                            )
+                            : (
+                                $submitResult['success']
+                                    ? 'Invoice submitted successfully.'
+                                    : 'Invoice submission failed.'
+                            )
+                    ),            
             'data' => [
                 'invoice_id' => $invoice['id'],
                 'uuid' => $invoice['uuid'],
@@ -141,30 +181,4 @@ class InvoiceService
         return $this->issueInvoice($invoiceData);
     }
 
-    private function buildSignedInvoice(
-        array $invoiceData,
-        string $outputDirectory
-    ): array {
-        $xmlPath = $this->invoiceXmlService->generate(
-            $invoiceData,
-            $outputDirectory
-        );
-    
-        $signed = $this->invoiceSigningService->sign(
-            $xmlPath,
-            $invoiceData['id'],
-            $outputDirectory
-        );
-        
-        return [
-            'invoice' => $invoiceData,
-            'xml_path' => $xmlPath,
-            'signed_xml' => $signed['signed_xml'],
-            'signed_xml_path' => $signed['signed_xml_path'],
-            'hash' => $signed['hash'],
-            'qr_code' => $signed['qr_code'],
-            'invoice_id' => $invoiceData['id'],
-            'uuid' => $invoiceData['uuid']
-        ];              
-    }
 }

@@ -1,7 +1,3 @@
-<?php
-// require_once __DIR__ . '/../includes/api_bootstrap.php';
-?>
-
 <div class="row mb-4">
 
     <div class="col">
@@ -31,7 +27,7 @@
 
 
     <div class="card-body">
-
+        <div id="invoiceAlert"></div>
 
         <form id="invoiceCreateForm">
 
@@ -86,61 +82,17 @@
 
             </div>
 
-
-
-
-            <hr>
-
-
-            <h5>
-                Customer
-            </h5>
-
-
-            <div class="row mb-3">
-
-
-                <div class="col-md-6">
-
-
-                    <label class="form-label">
-                        Customer Name
-                    </label>
-
-
-                    <input type="text"
-                           id="customerName"
-                           class="form-control"
-                           value="عميل تجريبي">
-
-
+            <div id="customerSection" style="display:none;">
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label class="form-label">Customer</label>
+                        <select id="customerSelect" class="form-select">
+                            <option value="">Select Customer</option>
+                        </select>
+                        </div>
+                    </div>
                 </div>
-
-
-
-                <div class="col-md-6">
-
-
-                    <label class="form-label">
-                        VAT Number
-                    </label>
-
-
-                    <input type="text"
-                           id="customerVat"
-                           class="form-control"
-                           value="300000000000003">
-
-
-                </div>
-
-
-            </div>
-
-
-
             <hr>
-
 
 
             <h5>
@@ -258,20 +210,15 @@
 
 
             <div class="text-end">
-
-
-                <button type="submit"
-                        class="btn btn-success">
-
-
-                    <i class="bi bi-send"></i>
-
-                    Create Invoice
-
-
+                <button type="button" id="saveDraft" class="btn btn-secondary">
+                    <i class="bi bi-save"></i>
+                    Save Draft
                 </button>
 
-
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-send"></i>
+                    Submit Invoice
+                </button>
             </div>
 
 

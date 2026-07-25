@@ -180,7 +180,7 @@ class CertificateService
     
         $api = $this->complianceService->createComplianceApi($environment);
     
-        $testInvoices = getComplianceInvoices($supplier);
+        $testInvoices = (new \App\Services\ComplianceService())->getComplianceInvoices($supplier);
     
         $results = [];
         

@@ -3,16 +3,19 @@
 namespace App\Services;
 
 use App\Repositories\CertificateStorageRepository;
+use App\Repositories\CompanyStorageRepository;
 use Saleh7\Zatca\Helpers\Certificate;
 use Exception;
 
 class InvoiceCertificateService
 {
+    protected CompanyStorageRepository $companyStorageRepository;
     private CertificateStorageRepository $certificateRepository;
 
     public function __construct()
     {
-        $this->certificateRepository = new CertificateStorageRepository();
+        $this->companyStorageRepository = new CompanyStorageRepository();
+        $this->certificateRepository = new CertificateStorageRepository($this->companyStorageRepository);
     }
 
     public function create(): Certificate

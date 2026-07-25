@@ -20,8 +20,6 @@ if (file_exists($pageFile)) {
 }
 ?>
 
-<!-- <script src="<?= BASE_URL ?>/assets/js/dashboard.js"></script> -->
-
 <?php
 
 include 'includes/footer.php';

@@ -74,4 +74,49 @@ class InvoiceZatcaRepository
                 : null,
         ]);
     }
+
+    public function updateAfterSubmission(
+        int $invoiceId,
+        array $submitResult
+    ): void {
+    
+        $status = strtoupper($submitResult['status'] ?? '');
+    
+        $stmt = $this->db->prepare("
+            UPDATE invoice_zatca
+            SET
+                clearance_status = :clearance_status,
+                reporting_status = :reporting_status,
+                zatca_status_code = :status_code,
+                zatca_response = :response,
+                submitted_at = :submitted_at,
+                cleared_at = :cleared_at
+            WHERE invoice_id = :invoice_id
+        ");
+    
+        $stmt->execute([
+            'clearance_status' => $status === 'CLEARED'
+                ? 'cleared'
+                : 'pending',
+    
+            'reporting_status' => $status === 'REPORTED'
+                ? 'reported'
+                : 'pending',
+    
+            'status_code' => $submitResult['statusCode'] ?? null,
+    
+            'response' => json_encode(
+                $submitResult,
+                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+            ),
+    
+            'submitted_at' => date('Y-m-d H:i:s'),
+    
+            'cleared_at' => $status === 'CLEARED'
+                ? date('Y-m-d H:i:s')
+                : null,
+    
+            'invoice_id' => $invoiceId
+        ]);
+    }    
 }

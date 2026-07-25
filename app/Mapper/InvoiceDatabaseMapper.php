@@ -18,7 +18,7 @@ class InvoiceDatabaseMapper
             'issue_time' => date('Y-m-d H:i:s'),
             'icv' => $chain['icv'],
             'previous_invoice_hash' => $chain['previous_hash'] ?? null,
-            'invoice_hash' => $package['hash'],
+            'invoice_hash' => $package['invoice_hash'],
             'xml_file_path' => $package['xml_path'],
             'signed_xml_file_path' => $package['signed_xml_path'],
             'invoice_status' => 'cleared'

@@ -69,7 +69,7 @@
                         </th>
 
                         <th>
-                            Date
+                            Issue Date
                         </th>
 
                         <th>
@@ -78,6 +78,10 @@
 
                         <th>
                             ZATCA
+                        </th>
+
+                        <th>
+                            Last Updated
                         </th>
 
                         <th>

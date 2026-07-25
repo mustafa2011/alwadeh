@@ -89,38 +89,45 @@ function loadInvoices(){
                         ${invoice.invoice_kind}
                     </td>
 
-
                     <td>
                         ${invoice.issue_date}
                     </td>
 
-
                     <td>
-
                         <span class="badge bg-secondary">
-
                             ${invoice.invoice_status}
-
                         </span>
-
                     </td>
 
-
                     <td>
-
                         ${invoice.zatca_status ?? '-'}
-
+                    </td>
+                        
+                    <td>
+                        ${invoice.updated_at ?? '-'}
                     </td>
 
 
                     <td>
 
                         <a href="?page=invoice_view&id=${invoice.id}"
-                           class="btn btn-sm btn-outline-primary">
-
+                        class="btn btn-sm btn-outline-primary">
                             View
-
                         </a>
+                        
+                        ${
+                            invoice.invoice_status === 'draft'
+                            ?
+                            `
+                            <button
+                                onclick="submitDraft(${invoice.id})"
+                                class="btn btn-sm btn-outline-success">
+                                Submit Draft
+                            </button>
+                            `
+                            :
+                            ''
+                        }
 
                     </td>
 
@@ -143,5 +150,38 @@ function loadInvoices(){
 
     });
 
+
+}
+
+function submitDraft(invoiceId){
+
+    if(!confirm(
+        "This invoice is saved as draft.\n\nDo you want to submit it to ZATCA?"
+    )){
+        return;
+    }
+
+    fetch(window.APP.baseUrl + "/api/invoices/submit_draft.php", {
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+            invoiceId:invoiceId
+        })
+    })
+    .then(response=>response.json())
+    .then(result=>{
+
+        alert(result.message);
+
+        if(result.success){
+            loadInvoices();
+        }
+
+    })
+    .catch(error=>{
+        console.error(error);
+    });
 
 }

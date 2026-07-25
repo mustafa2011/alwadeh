@@ -993,4 +993,20 @@ class CompanyStorageRepository
             );
     }    
 
+    public function saveClearedInvoice(
+        string $signedXmlPath,
+        string $invoiceId,
+        string $clearedXml
+    ): string
+    {
+        $path = dirname($signedXmlPath)
+            . DIRECTORY_SEPARATOR
+            . $invoiceId
+            . '_zatca.xml';
+    
+        file_put_contents($path, $clearedXml);
+    
+        return $path;
+    }    
+
 }

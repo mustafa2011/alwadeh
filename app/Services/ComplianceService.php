@@ -8,16 +8,19 @@ use Saleh7\Zatca\ZatcaAPI;
 use Saleh7\Zatca\Api\ProductionCertificateResult;
 use Saleh7\Zatca\Helpers\Certificate;
 use Saleh7\Zatca\InvoiceSigner;
+use App\Services\InvoiceXmlService;
 use Exception;
 
 class ComplianceService
 {
     protected CertificateStorageRepository $certificateStorageRepository;
     protected CompanyStorageRepository $companyStorageRepository;
+    protected InvoiceXmlService $invoiceXmlService;
     public function __construct()
     {
         $this->companyStorageRepository = new CompanyStorageRepository();
         $this->certificateStorageRepository = new CertificateStorageRepository($this->companyStorageRepository);
+        $this->invoiceXmlService = new InvoiceXmlService();
     }
 
     function requestProductionCertificate(
@@ -141,7 +144,7 @@ class ComplianceService
     
     }
     
-    function processComplianceInvoice(
+    public function processComplianceInvoice(
         ZatcaAPI $api,
         array $invoiceData,
         array $credentials,
@@ -154,7 +157,7 @@ class ComplianceService
         $invoiceData['additionalDocuments'][0]['uuid'] = (string) $icv;
     
         // Generate XML
-        $xmlFile = generateInvoiceXml(
+        $xmlFile = $this->invoiceXmlService->generateInvoiceXml(
             $invoiceData,
             $outputDirectory
         );
@@ -202,5 +205,121 @@ class ComplianceService
         ];
     
     }
+
+    public function getComplianceInvoices(array $supplier)
+    {
+        return [
     
+            [
+                'label' => '1/6 Standard Invoice',
+    
+                'data' => (new \App\Builders\InvoiceBuilder())->buildInvoice($supplier, [
+    
+                    'id' => 'STD00001',
+    
+                    'type' => 'standard',
+    
+                    'subtype' => 'invoice',
+    
+                    'hasCustomer' => true,
+    
+                    'hasDelivery' => true,
+    
+                ]),
+    
+            ],
+    
+            [
+                'label' => '2/6 Standard Credit Note',
+    
+                'data' => (new \App\Builders\InvoiceBuilder())->buildInvoice($supplier, [
+    
+                    'id' => 'STD00002',
+    
+                    'type' => 'standard',
+    
+                    'subtype' => 'credit',
+    
+                    'hasCustomer' => true,
+    
+                    'hasDelivery' => true,
+    
+                    'billingRef' => 'STD00002',
+    
+                ]),
+    
+            ],
+    
+            [
+                'label' => '3/6 Standard Debit Note',
+    
+                'data' => (new \App\Builders\InvoiceBuilder())->buildInvoice($supplier, [
+    
+                    'id' => 'STD00003',
+    
+                    'type' => 'standard',
+    
+                    'subtype' => 'debit',
+    
+                    'hasCustomer' => true,
+    
+                    'hasDelivery' => true,
+    
+                    'billingRef' => 'STD00003',
+    
+                ]),
+    
+            ],
+    
+            [
+                'label' => '4/6 Simplified Invoice',
+    
+                'data' => (new \App\Builders\InvoiceBuilder())->buildInvoice($supplier, [
+    
+                    'id' => 'SIM00004',
+    
+                    'type' => 'simplified',
+    
+                    'subtype' => 'invoice',
+    
+                ]),
+    
+            ],
+    
+            [
+                'label' => '5/6 Simplified Credit Note',
+    
+                'data' => (new \App\Builders\InvoiceBuilder())->buildInvoice($supplier, [
+    
+                    'id' => 'SIM00005',
+    
+                    'type' => 'simplified',
+    
+                    'subtype' => 'credit',
+    
+                    'billingRef' => 'SIM00005',
+    
+                ]),
+    
+            ],
+    
+            [
+                'label' => '6/6 Simplified Debit Note',
+    
+                'data' => (new \App\Builders\InvoiceBuilder())->buildInvoice($supplier, [
+    
+                    'id' => 'SIM00006',
+    
+                    'type' => 'simplified',
+    
+                    'subtype' => 'debit',
+    
+                    'billingRef' => 'SIM00006',
+    
+                ]),
+    
+            ],
+    
+        ];
+    }      
 }

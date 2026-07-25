@@ -4,11 +4,13 @@ namespace App\Services;
 
 use App\Core\Database;
 use App\Repositories\InvoiceRepository;
+use App\Repositories\CompanySettingsRepository;
 use PDO;
 use Saleh7\Zatca\ZatcaAPI;
 
 class InvoiceChainService
 {
+    protected CompanySettingsRepository $companySettingsRepository;
     private InvoiceRepository $invoiceRepository;
     private PDO $db;
 
@@ -16,6 +18,7 @@ class InvoiceChainService
     {
         $this->db = Database::getConnection();
         $this->invoiceRepository = new InvoiceRepository($this->db);
+        $this->companySettingsRepository = new CompanySettingsRepository();
     }
 
     public function next(int $companyId): array
@@ -35,7 +38,7 @@ class InvoiceChainService
     public function api(): ZatcaAPI
     {
         return new ZatcaAPI(
-            getApiEnvironment()
+            $this->companySettingsRepository->getApiEnvironment()
         );
     }
 }
