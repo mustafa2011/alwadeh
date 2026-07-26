@@ -6,10 +6,8 @@ use App\Repositories\CustomerRepository;
 
 try {
 
-    $id = (int)($_GET['id'] ?? 0);
-
-    if(!$id){
-        throw new Exception('Customer id required.');
+    if (empty($_GET['id'])) {
+        throw new Exception('Customer ID is required.');
     }
 
     $repository = new CustomerRepository();
@@ -17,14 +15,11 @@ try {
     jsonResponse(
         true,
         'Customer loaded successfully.',
-        $repository->findForInvoice($id)
+        $repository->find((int)$_GET['id'])
     );
 
-} catch(Throwable $e){
+} catch (Throwable $e) {
 
-    jsonResponse(
-        false,
-        $e->getMessage()
-    );
+    jsonResponse(false, $e->getMessage());
 
 }

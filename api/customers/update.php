@@ -4,7 +4,6 @@ require_once __DIR__ . '/../../includes/api_bootstrap.php';
 
 use App\Repositories\CustomerRepository;
 use App\Validators\CustomerValidator;
-use App\Repositories\CompanyStorageRepository;
 
 try {
 
@@ -13,31 +12,30 @@ try {
         true
     );
 
-    if(!is_array($data)){
+    if (!is_array($data)) {
         throw new Exception('Invalid customer data.');
     }
 
-    $companyRepository = new CompanyStorageRepository();
-
-    $company = $companyRepository->loadCurrentCompany();
-    
-    $data['company_id'] = (int)$company['id'];
+    if (empty($data['id'])) {
+        throw new Exception('Customer ID is required.');
+    }
 
     $validator = new CustomerValidator();
     $validator->validate($data);
 
     $repository = new CustomerRepository();
-    $id = $repository->create($data);
+
+    $repository->update(
+        (int)$data['id'],
+        $data
+    );
 
     jsonResponse(
         true,
-        'Customer created successfully.',
-        [
-            'id'=>$id
-        ]
+        'Customer updated successfully.'
     );
 
-} catch(Throwable $e){
+} catch (Throwable $e) {
 
     jsonResponse(
         false,

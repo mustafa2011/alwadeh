@@ -49,41 +49,36 @@
 
 
         <div class="table-responsive">
-
+            <div id="customerAlert"></div>
             <table class="table table-striped align-middle">
 
                 <thead>
 
                     <tr>
-
                         <th>
                             #
                         </th>
-
                         <th>
-                            Customer Number
+                            Customer Code
                         </th>
-
                         <th>
-                            Type
+                            Registration Name
                         </th>
-
                         <th>
-                            Date
+                            Customer Type
                         </th>
-
                         <th>
-                            Status
+                            VAT Number
                         </th>
-
                         <th>
-                            ZATCA
+                            CRN
                         </th>
-
                         <th>
-                            Action
+                            Country
                         </th>
-
+                        <th>
+                            Actions
+                        </th>
                     </tr>
 
                 </thead>
