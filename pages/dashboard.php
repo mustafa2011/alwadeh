@@ -241,6 +241,12 @@
                         Customers
                     </a>
 
+                    <a href="?page=items"
+                        class="btn btn-outline-success">
+                        <i class="bi bi-people"></i>
+                        Items
+                    </a>
+
                 </div>
 
             </div>

@@ -82,6 +82,11 @@ async function loadCustomer() {
                         </tr>
 
                         <tr>
+                            <th>Contact Name</th>
+                            <td>${c.contact_name ?? ''}</td>
+                        </tr>
+
+                        <tr>
                             <th>Telephone</th>
                             <td>${c.telephone ?? ''}</td>
                         </tr>
@@ -92,6 +97,14 @@ async function loadCustomer() {
                         </tr>
 
                     </table>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <a href="?page=customers" class="btn btn-secondary">
+                                Back
+                            </a>
+                        </div>
+                    </div>
 
                 </div>
 

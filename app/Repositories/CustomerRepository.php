@@ -331,7 +331,6 @@ class CustomerRepository
                     credit_limit=:credit_limit
                 WHERE id=:id
             ");
-    
             $stmt->execute([
                 'id'=>$id,
                 'customer_code'=>$data['customer_code'] ?? null,
@@ -354,7 +353,6 @@ class CustomerRepository
                     party_name=:party_name
                 WHERE customer_id=:customer_id
             ");
-    
             $stmt->execute([
                 'customer_id'=>$id,
                 'endpoint_id'=>$data['commercial_registration_number'] ?? null,
