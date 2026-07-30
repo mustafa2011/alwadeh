@@ -208,6 +208,8 @@ function renderInvoice(invoice) {
                             <th class="text-end">Qty</th>
                             <th class="text-end">Unit Price</th>
                             <th class="text-end">Tax %</th>
+                            <th class="text-end">Discount</th>
+                            <th class="text-end">Type</th>
                             <th class="text-end">Tax</th>
                             <th class="text-end">Total</th>
                         </tr>
@@ -223,6 +225,8 @@ function renderInvoice(invoice) {
                             <td class="text-end">${item.quantity}</td>
                             <td class="text-end">${Number(item.unit_price).toFixed(2)}</td>
                             <td class="text-end">${Number(item.tax_percent).toFixed(2)}%</td>
+                            <td class="text-end">${Number(item.discount_amount??0).toFixed(2)}</td>
+                            <td class="text-end">${item.discount_percentage > 0 ? 'Percent' : 'Amount'}</td>
                             <td class="text-end">${Number(item.tax_amount).toFixed(2)}</td>
                             <td class="text-end">${Number(item.payable_amount).toFixed(2)}</td>
                         </tr>
@@ -236,7 +240,10 @@ function renderInvoice(invoice) {
         </div>
     </div>
     `; 
-    
+    const taxAmount=(invoice.tax_totals||[]).reduce(
+        (sum,row)=>sum+Number(row.tax_amount||0),
+        0
+    );
     html+=`
     <div class="card shadow-sm mb-4">
         <div class="card-header fw-bold">
@@ -257,8 +264,8 @@ function renderInvoice(invoice) {
                             </tr>
                             <tr>
                                 <th>Tax Amount</th>
-                                <td class="text-end">${Number(invoice.totals.tax_amount??0).toFixed(2)}</td>
-                            </tr>
+                                <td class="text-end">${taxAmount.toFixed(2)}</td>
+                            </tr>                            
                             <tr>
                                 <th>Tax Inclusive Amount</th>
                                 <td class="text-end">${Number(invoice.totals.tax_inclusive_amount??0).toFixed(2)}</td>
@@ -290,78 +297,73 @@ function renderInvoice(invoice) {
                     <label class="text-muted small">Invoice Status</label>
                     <div>${invoice.invoice_status}</div>
                 </div>
+
                 <div class="col-md-4 mb-3">
                     <label class="text-muted small">Submission Type</label>
-                    <div>${invoice.clearance_status!=="pending"?"Clearance":"Reporting"}</div>
+                    <div>
+                        ${
+                            ["reported","cleared","rejected"].includes(invoice.invoice_status)
+                                ? (invoice.invoice_kind === "standard"
+                                    ? "Clearance"
+                                    : "Reporting")
+                                : "-"
+                        }
+                    </div>
                 </div>
+
                 <div class="col-md-4 mb-3">
                     <label class="text-muted small">HTTP Status</label>
-                    <div>${invoice.zatca_status_code??"-"}</div>
+                    <div>${invoice.zatca_status_code ?? "-"}</div>
                 </div>
+
                 <div class="col-md-4 mb-3">
                     <label class="text-muted small">Reporting Status</label>
-                    <div>${invoice.reporting_status??"-"}</div>
+                    <div>${invoice.reporting_status ?? "-"}</div>
                 </div>
+
                 <div class="col-md-4 mb-3">
                     <label class="text-muted small">Clearance Status</label>
-                    <div>${invoice.clearance_status??"-"}</div>
+                    <div>${invoice.clearance_status ?? "-"}</div>
                 </div>
+
                 <div class="col-md-4 mb-3">
                     <label class="text-muted small">Submitted At</label>
-                    <div>${invoice.submitted_at??"-"}</div>
+                    <div>${invoice.submitted_at ?? "-"}</div>
                 </div>
+
                 <div class="col-md-4">
                     <label class="text-muted small">Cleared At</label>
-                    <div>${invoice.cleared_at??"-"}</div>
+                    <div>${invoice.cleared_at ?? "-"}</div>
                 </div>
             </div>
         </div>
     </div>
     `;
-    
     html += `
     <div class="card shadow-sm">
         <div class="card-header fw-bold">
             Actions
         </div>
         <div class="card-body d-flex flex-wrap gap-2">
-            <a href="${window.APP.baseUrl}/api/invoices/view_xml.php?id=${invoice.id}"
-               target="_blank"
-               class="btn btn-outline-primary">
-                View XML
-            </a>
-    
             <a href="${window.APP.baseUrl}/api/invoices/download_xml.php?id=${invoice.id}"
-               class="btn btn-outline-primary">
+               class="btn btn-outline-success">
                 Download XML
             </a>
-    
-            <a href="${window.APP.baseUrl}/api/invoices/download_signed_xml.php?id=${invoice.id}"
-               class="btn btn-outline-success">
-                Download Signed XML
-            </a>
     `;
-    if(invoice.invoice_kind==="standard"){
-        html+=`
-            <a href="${window.APP.baseUrl}/api/invoices/download_cleared_xml.php?id=${invoice.id}" class="btn btn-outline-success">
-                Download Cleared XML
-            </a>
-    `;
-    }
     html+=`
             <a href="${window.APP.baseUrl}/api/invoices/download_pdf.php?id=${invoice.id}" class="btn btn-outline-danger">
                 Download PDF
             </a>
     `;
-    if(invoice.invoice_status==="draft"){
+    if(invoice.invoice_status==="signed"){
         html+=`
             <button id="submitDraftBtn" class="btn btn-primary">
                 Submit to ZATCA
             </button>
-            <a href="?page=invoice_create&id=${invoice.id}" class="btn btn-warning">
-                Edit Draft
+            <a href="?page=invoice_edit&id=${invoice.id}" class="btn btn-warning">
+                Edit
             </a>
-    `;
+        `;
     }
     html+=`
         </div>
@@ -372,7 +374,6 @@ function renderInvoice(invoice) {
 }
 
 function viewXml(invoiceId){
-
     fetch(window.APP.baseUrl + "/api/invoices/view_xml.php", {
         method: "POST",
         headers: {
@@ -383,9 +384,7 @@ function viewXml(invoiceId){
         })
     })
     .then(async (response) => {
-
         const text = await response.text();
-
         try{
             return JSON.parse(text);
         }catch(e){
@@ -395,29 +394,42 @@ function viewXml(invoiceId){
 
     })
     .then(result => {
-
         if(!result.success){
-
-            showAlert(
-                "invoiceAlert",
-                "danger",
-                result.message
-            );
-
+            showError(result.message);
             return;
         }
-
         document
         .getElementById("viewXml")
         .addEventListener("click", function(){
-        
             viewXml(
                 document.getElementById("invoiceId").value
             );
-        
         });
-
     })
     .catch(console.error);
 
+}
+function submitDraft(invoiceId){
+    if(!confirm("Submit this invoice to ZATCA?")){
+        return;
+    }
+
+    fetch(window.APP.baseUrl+"/api/invoices/submit_draft.php",{
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+            invoiceId:invoiceId
+        })
+    })
+    .then(response=>response.json())
+    .then(result=>{
+        alert(result.message);
+
+        if(result.success){
+            loadInvoices();
+        }
+    })
+    .catch(console.error);
 }

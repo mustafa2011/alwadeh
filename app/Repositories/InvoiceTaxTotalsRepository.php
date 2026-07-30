@@ -50,4 +50,14 @@ class InvoiceTaxTotalsRepository
             ]);
         }
     }
+    public function deleteByInvoiceId(int $invoiceId): void
+    {
+        $stmt=$this->db->prepare("
+            DELETE FROM invoice_tax_totals
+            WHERE invoice_id=:invoice_id
+        ");
+        $stmt->execute([
+            'invoice_id'=>$invoiceId
+        ]);
+    }    
 }

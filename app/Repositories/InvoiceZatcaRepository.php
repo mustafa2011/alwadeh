@@ -51,7 +51,9 @@ class InvoiceZatcaRepository
             )
         ");
 
-        $status = strtoupper($submitResult['status'] ?? '');
+        // $status = strtoupper($submitResult['status'] ?? '');
+        $submissionType = $submitResult['submission_type'] ?? null;
+        $success = !empty($submitResult['success']);
 
         $stmt->execute([
             'invoice_id' => $invoiceId,
@@ -61,17 +63,25 @@ class InvoiceZatcaRepository
             'qr_code' => $package['qr_code'] ?? null,
             'xml_content' => @file_get_contents($package['xml_path']),
             'signed_xml' => $package['signed_xml'],
-            'clearance_status' => $status === 'CLEARED' ? 'cleared' : 'pending',
-            'reporting_status' => $status === 'REPORTED' ? 'reported' : 'pending',
+            'clearance_status' => ($success && $submissionType === 'clearance' )
+                ? 'cleared'
+                : 'pending',
+
+            'reporting_status' => ($success && $submissionType === 'reporting')
+                ? 'reported'
+                : 'pending',
+
+            'cleared_at' => ($success && $submissionType === 'clearance')
+                ? date('Y-m-d H:i:s')
+                : null,
             'zatca_status_code' => $submitResult['statusCode'] ?? null,
             'zatca_response' => json_encode(
                 $submitResult,
                 JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
             ),
-            'submitted_at' => date('Y-m-d H:i:s'),
-            'cleared_at' => $status === 'CLEARED'
+            'submitted_at' => !empty($submitResult['submission_type'])
                 ? date('Y-m-d H:i:s')
-                : null,
+                : null,            
         ]);
     }
 

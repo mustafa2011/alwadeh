@@ -76,23 +76,11 @@ document.getElementById('renewCSRForm').addEventListener('submit', function (e) 
             goToStep('step1', 'step2');
 
             setTimeout(function () {
-
-                showAlert(
-                    'wizardMessage',
-                    'success',
-                    result.message
-                );
-
+                showSuccess(result.message);
             }, 250);
 
         } else {
-
-            showAlert(
-                'wizardMessage',
-                'danger',
-                result.message
-            );
-
+            showError(result.message);
         }
 
     })
@@ -104,13 +92,7 @@ document.getElementById('renewCSRForm').addEventListener('submit', function (e) 
             <i class="bi bi-check2-circle me-1"></i>
             Generate Renewal CSR
         `;
-
-        showAlert(
-            'wizardMessage',
-            'danger',
-            error
-        );
-
+        showError(result.message);
     });
 
 });
@@ -166,21 +148,9 @@ document.getElementById('renewCertificateForm').addEventListener('submit', funct
                 <i class="bi bi-check-circle-fill me-1"></i>
                 Certificate Renewed
             `;
-
-            showAlert(
-                'wizardMessage',
-                'success',
-                result.message
-            );
-
+            showSuccess(result.message);
         } else {
-
-            showAlert(
-                'wizardMessage',
-                'danger',
-                result.message
-            );
-
+            showError(result.message);
         }
 
     })
@@ -192,37 +162,10 @@ document.getElementById('renewCertificateForm').addEventListener('submit', funct
             <i class="bi bi-arrow-repeat me-1"></i>
             Renew Production Certificate
         `;
-
-        showAlert(
-            'wizardMessage',
-            'danger',
-            error
-        );
-
+        showError(result.message);
     });
 
 });
-
-/**
- * Show Bootstrap alert.
- */
-if (typeof showAlert !== 'function') {
-
-    function showAlert(containerId, type, message)
-    {
-        document.getElementById(containerId).innerHTML = `
-            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                ${message}
-                <button
-                    type="button"
-                    class="btn-close"
-                    data-bs-dismiss="alert">
-                </button>
-            </div>
-        `;
-    }
-
-}
 
 /**
  * Navigate Wizard Steps.

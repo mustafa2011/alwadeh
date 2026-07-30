@@ -42,7 +42,7 @@ class InvoiceCalculationService
                 $taxTotalAmount,
                 $allowanceTotalAmount
             ),
-            'allowanceCharges' => []
+            'allowanceCharges' => $this->buildAllowanceCharges($items)
         ];
     }
 
@@ -102,15 +102,14 @@ class InvoiceCalculationService
         float $tax,
         float $allowance
     ): array {
-    
         return [
             'lineExtensionAmount' => round($lineExtension, 2),
             'taxExclusiveAmount' => round($lineExtension, 2),
             'taxInclusiveAmount' => round($lineExtension + $tax, 2),
             'prepaidAmount' => 0,
             'payableAmount' => round($lineExtension + $tax, 2),
-            'allowanceTotalAmount' => round($allowance, 2)
-        ];
+            'allowanceTotalAmount' => 0
+        ];        
     }
     
     private function buildInvoiceLine(
@@ -249,24 +248,19 @@ class InvoiceCalculationService
         float $discount,
         array $item
     ): array {
-    
-        $price = [
-            'amount' => $unitPrice,
+        $quantity = (float)($item['quantity'] ?? 1);
+        $netPrice = $quantity > 0
+            ? round(($unitPrice * $quantity - $discount) / $quantity, 6)
+            : $unitPrice;
+        return [
+            'amount' => $netPrice,
             'unitCode' => $item['unitCode'] ?? 'PCE',
             'allowanceCharges' => []
         ];
-    
-        if ($discount > 0) {
-    
-            $price['allowanceCharges'][] = [
-                'isCharge' => false,
-                'reason' => $item['discount']['reason'] ?? 'discount',
-                'amount' => $discount
-            ];
-        }
-    
-        return $price;
     }
-    
+    private function buildAllowanceCharges(array $items): array
+    {
+        return [];
+    }    
     
 }

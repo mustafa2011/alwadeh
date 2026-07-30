@@ -32,6 +32,9 @@ class InvoiceBuilder
             'id' => $invoiceData['id'] ?? $invoiceData['invoiceNumber'],
             'issueDate' => $invoiceData['issueDate'] ?? $now->format('Y-m-d'),
             'issueTime' => $invoiceData['issueTime'] ?? $now->format('H:i:s'),
+            'delivery' => [
+                'actualDeliveryDate' => $invoiceData['actualDeliveryDate'] ?? $now->format('Y-m-d'),
+            ],            
             'currencyCode' => 'SAR',
             'taxCurrencyCode' => 'SAR',
             'invoiceType' => [
@@ -50,7 +53,6 @@ class InvoiceBuilder
                 'code' => '10'
             ],
             'environment' => $environment,
-            // 'invoice_type' => $type,
         ];
     
         $invoice = array_replace_recursive(
@@ -137,7 +139,7 @@ class InvoiceBuilder
             $totals
         );
     }
-/*
+
     public function buildInvoice(array $supplier, array $options)
     {
 
@@ -298,5 +300,5 @@ class InvoiceBuilder
             'actualDeliveryDate' => $date->format('Y-m-d'),
         ];
     } 
-*/        
+        
 }

@@ -41,16 +41,20 @@ class InvoicePersistenceService
         $this->db->beginTransaction();
         try {
             if (($submitResult['status'] ?? null) === 'draft') {
-                $status = 'draft';            
-            } elseif (($submitResult['submission_type'] ?? null) === 'reporting'
-                && $submitResult['success']) {            
-                $status = 'reported';            
-            } elseif (($submitResult['submission_type'] ?? null) === 'clearance'
-                && $submitResult['success']) {            
-                $status = 'cleared';            
-            } else {            
-                $status = 'rejected';            
-            }            
+                $status = 'signed';
+            } elseif (
+                ($submitResult['submission_type'] ?? null) === 'reporting'
+                && $submitResult['success']
+            ) {
+                $status = 'reported';
+            } elseif (
+                ($submitResult['submission_type'] ?? null) === 'clearance'
+                && $submitResult['success']
+            ) {
+                $status = 'cleared';
+            } else {
+                $status = 'rejected';
+            }          
 
             $invoiceId = $this->invoiceRepository->create([
                 'company_id' => $company['id'],
@@ -75,19 +79,7 @@ class InvoicePersistenceService
                 'invoice_status' => $status,
                 'qr_code' => $package['qr_code'] ?? null,
                 'created_by' => $_SESSION['user']['id'] ?? null,
-            ]);
-
-            if (($submitResult['status'] ?? null) === 'draft') {
-
-                $submitResult = [
-                    'success' => true,
-                    'status' => 'PENDING',
-                    'statusCode' => null,
-                    'warnings' => [],
-                    'errors' => [],
-                ];
-            
-            }            
+            ]);         
             
             $this->invoiceZatcaRepository->create(
                 $invoiceId,
@@ -129,4 +121,59 @@ class InvoicePersistenceService
     
         }
     }
+    public function update(
+        int $invoiceId,
+        array $invoice,
+        array $package,
+        array $chain,
+        array $invoiceData
+    ): void {
+        $this->db->beginTransaction();
+        try {
+            $this->invoiceRepository->update(
+                $invoiceId,
+                [
+                    'customer_id' => $invoice['invoiceType']['invoice'] === 'standard'
+                        ? ($invoiceData['customerId'] ?? null)
+                        : null,
+                    'invoice_kind' => $invoice['invoiceType']['invoice'] ?? 'simplified',
+                    'issue_date' => $invoice['issueDate'],
+                    'issue_time' => $invoice['issueTime'],
+                    'currency_code' => $invoice['currencyCode'] ?? 'SAR',
+                    'document_currency_code' => $invoice['currencyCode'] ?? 'SAR',
+                    'tax_currency_code' => $invoice['taxCurrencyCode'] ?? 'SAR',
+                    'invoice_hash' => $package['hash'],
+                    'xml_file_path' => $package['xml_path'],
+                    'signed_xml_path' => $package['signed_xml_path'],
+                    'qr_code' => $package['qr_code'] ?? null
+                ]
+            );
+            $this->invoiceLineRepository->deleteByInvoiceId($invoiceId);
+            $this->invoiceTotalsRepository->deleteByInvoiceId($invoiceId);
+            $this->invoiceTaxTotalsRepository->deleteByInvoiceId($invoiceId);
+            $this->invoiceSnapshotRepository->deleteByInvoiceId($invoiceId);            
+            $this->invoiceLineRepository->create(
+                $invoiceId,
+                $invoice['invoiceLines']
+            );
+            $this->invoiceTotalsRepository->create(
+                $invoiceId,
+                $invoice['legalMonetaryTotal']
+            );
+            $this->invoiceTaxTotalsRepository->create(
+                $invoiceId,
+                $invoice['taxTotal']
+            );
+            $this->invoiceSnapshotRepository->create(
+                $invoiceId,
+                $invoice,
+                $invoiceData
+            );            
+            $this->db->commit();
+        } catch (\Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
+    }
+        
 }

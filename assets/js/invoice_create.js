@@ -1,23 +1,20 @@
+let itemsCache = [];
+let customerBox;
+let invoiceKind;
 document.addEventListener(
     "DOMContentLoaded",
     function(){
-
-
         const form =
             document.getElementById(
                 "invoiceCreateForm"
             );
-
-
         const addItem =
             document.getElementById(
                 "addItem"
             );
-
-            const invoiceKind=document.getElementById("invoiceKind");
-            const customerBox=document.getElementById("customerSection");
-            const customerSelect=document.getElementById("customerSelect");
-            
+            invoiceKind=document.getElementById("invoiceKind");
+            customerBox=document.getElementById("customerSection");
+            customerSelect=document.getElementById("customerSelect");          
             function toggleCustomer(){
                 if(invoiceKind.value==="standard"){
                     customerBox.style.display="block";
@@ -27,92 +24,67 @@ document.addEventListener(
                     customerSelect.value="";
                 }
             }
-            
             invoiceKind.addEventListener("change",toggleCustomer);
-            
             toggleCustomer();
-
-
-
-
-            
+            loadItems();
+            if(typeof invoiceId !== "undefined" && invoiceId){
+                loadInvoice(invoiceId);
+            }            
         addItem.addEventListener(
             "click",
             function(){
-
-
                 let tbody =
                     document.getElementById(
                         "invoiceItems"
                     );
-
-
                 tbody.insertAdjacentHTML(
                     "beforeend",
                     `
-
                     <tr>
-
-
                         <td>
-
-                            <input type="text"
-                                   class="form-control item-name"
-                                   value="منتج جديد">
-
+                            <select class="form-select item-select">
+                                <option value="">Select Item</option>
+                            </select>
                         </td>
-
-
-
                         <td>
-
                             <input type="number"
                                    class="form-control item-qty"
                                    value="1">
-
                         </td>
-
-
-
                         <td>
-
                             <input type="number"
-                                   class="form-control item-price"
-                                   value="0">
-
+                                class="form-control item-price"
+                                value="0">
                         </td>
-
-
-
                         <td>
-
                             <input type="number"
-                                   class="form-control item-tax"
-                                   value="15">
-
+                                class="form-control item-discount"
+                                value="0"
+                                min="0"
+                                step="0.01">
                         </td>
-
-
+                        <td>
+                            <select class="form-select item-discount-type">
+                                <option value="amount">Amount</option>
+                                <option value="percent">Percent</option>
+                            </select>
+                        </td>
+                        <td>
+                            <input type="number"
+                                class="form-control item-tax"
+                                value="15">
+                        </td>
                     </tr>
-
                     `
                 );
-
-
+                fillItemList(
+                    tbody.lastElementChild.querySelector(".item-select")
+                );                
             }
         );
-
-        document
-        .getElementById("saveDraft")
-        .addEventListener("click", function () {    
-            submitInvoice = false;
-            form.requestSubmit();
-        });
-
-        form.addEventListener(
-            "submit",
-            function(e){
+        form.addEventListener("submit",function(e){
                 e.preventDefault();
+                submitInvoice = false;
                 let items = [];
                 document
                 .querySelectorAll(
@@ -120,10 +92,10 @@ document.addEventListener(
                 )
                 .forEach(
                     function(row){
-                        let name =
-                            row.querySelector(
-                                ".item-name"
-                            ).value;
+                        let itemId =
+                            parseInt(
+                                row.querySelector(".item-select").value
+                            );
                         let qty =
                             parseFloat(
                                 row.querySelector(
@@ -136,18 +108,37 @@ document.addEventListener(
                                     ".item-price"
                                 ).value
                             );
-                        let tax =
+                            let tax =
                             parseFloat(
                                 row.querySelector(
                                     ".item-tax"
                                 ).value
                             );
+                        let discount =
+                            parseFloat(
+                                row.querySelector(
+                                    ".item-discount"
+                                ).value
+                            );
+                        let discountType =
+                            row.querySelector(
+                                ".item-discount-type"
+                            ).value;
+                        let discountAmount=discount;
+                        if(discountType==="percent"){
+                            discountAmount=(qty*price)*(discount/100);
+                        }                            
                         items.push({
-                            name:name,
+                            itemId:itemId,
                             quantity:qty,
                             unitPrice:price,
                             unitCode:"PCE",
-                            allowanceCharges:[],
+                            discount:{
+                                type:discountType,
+                                value:discount,
+                                amount:discountAmount,
+                                reason:"Discount"
+                            },                                                        
                             taxCategory:{
                                 id:"S",
                                 percent:tax
@@ -173,11 +164,7 @@ document.addEventListener(
                     };
 
                     if (invoiceType === "standard" && !invoiceData.customerId) {
-                        showAlert(
-                            "invoiceAlert",
-                            "danger",
-                            "Please select customer for standard invoice."
-                        );
+                        showError("Please select customer for standard invoice.");                        
                         return;
                     }
                     createInvoice(
@@ -186,28 +173,28 @@ document.addEventListener(
                     );
 
                     submitInvoice = true;                    
-                    // createInvoice(invoiceData);
-
             }
         );
-
     }
 );
-
 function createInvoice(data, submit = true){
-
-    data.submit = submit;
-
-    fetch(window.APP.baseUrl + "/api/invoices/create.php", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
+    data.submit=submit;
+    let url=window.APP.baseUrl+"/api/invoices/create.php";
+    if(typeof invoiceId!=="undefined"&&invoiceId){
+        data.invoiceId=invoiceId;
+        url=window.APP.baseUrl+"/api/invoices/update.php";
+    }
+    console.log("invoiceId:",typeof invoiceId!=="undefined"?invoiceId:null);
+    console.log("url:",url);
+    fetch(url,{
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json"
         },
-        body: JSON.stringify(data)
+        body:JSON.stringify(data)
     })
     .then(async (response) => {
         const text = await response.text();
-
         try {
             return JSON.parse(text);
         } catch (e) {
@@ -216,21 +203,22 @@ function createInvoice(data, submit = true){
         }
     })
     .then(result => {
-        showAlert(
-            "invoiceAlert",
-            result.success ? "success" : "danger",
-            result.message
-        );
+        showSuccess(result.message);    
+        if (result.success && !submit) {
+    
+            setTimeout(function () {
+                window.location.href = "?page=invoices";
+            }, 500);
+    
+        }
+    
     })
     .catch(error => {
         console.error(error);
     });
-
 }
-
 function loadCustomers(){
-    customerSelect.innerHTML='<option value="">Select Customer</option>';
-    fetch(window.APP.baseUrl+"/api/customers/list.php")
+    return fetch(window.APP.baseUrl+"/api/customers/list.php")
     .then(response=>response.json())
     .then(result=>{
         customerSelect.innerHTML='<option value="">Select Customer</option>';
@@ -245,13 +233,107 @@ function loadCustomers(){
         });
     });
 }
+function loadItems(){
+    fetch(window.APP.baseUrl + "/api/items/list.php")
+    .then(response=>response.json())
+    .then(result=>{
+        if(!result.success){
+            return;
+        }
+        itemsCache=result.data;
+        fillItemLists();
+    });
+}
+function fillItemLists(){
+    document.querySelectorAll(".item-select").forEach(function(select){
+        fillItemList(select);
+    });
 
-function showAlert(containerId, type, message)
-{
-    document.getElementById(containerId).innerHTML = `
-        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    `;
+}
+function fillItemList(select){
+    select.innerHTML='<option value="">Select Item</option>';
+    itemsCache.forEach(function(item){
+        select.innerHTML+=`
+        <option value="${item.id}">
+            ${item.item_name}
+        </option>`;
+    });
+    select.onchange=function(){
+        itemChanged(this);
+    };
+}
+function itemChanged(select){
+    const row=select.closest("tr");
+    const item=itemsCache.find(i=>i.id==select.value);
+    if(!item){
+        return;
+    }
+    row.querySelector(".item-price").value=item.selling_price;
+    row.querySelector(".item-tax").value=item.tax_percent;
+    row.querySelector(".item-discount").value = item.discount_amount ?? 0;
+    row.querySelector(".item-discount-type").value =
+        (Number(item.discount_percentage) > 0)
+            ? "percent"
+            : "amount";    
+}
+function loadInvoice(id){
+    fetch(window.APP.baseUrl+"/api/invoices/view.php?mode=edit&id="+id)
+    .then(response=>response.json())
+    .then(result=>{
+        if(!result.success){
+            return;
+        }
+        const invoice=result.data;
+        document.getElementById("invoiceNumber").value=invoice.invoice_number;
+        document.getElementById("invoiceKind").value=invoice.invoice_kind;
+        
+        if(invoice.invoice_kind==="standard"){
+            customerBox.style.display="block";
+            loadCustomers().then(()=>{
+                customerSelect.value=invoice.customer_id;
+            });
+        }        
+        const tbody=document.getElementById("invoiceItems");
+        tbody.innerHTML="";
+        invoice.items.forEach(item=>{
+            addInvoiceRow(item);
+        });
+    });
+}
+function addInvoiceRow(item){
+    let tbody=document.getElementById("invoiceItems");
+    const isPercent=Number(item.discount_percentage)>0;
+    const discountValue=isPercent
+        ? item.discount_percentage
+        : (item.discount_amount ?? 0);
+    tbody.insertAdjacentHTML(
+        "beforeend",
+        `
+        <tr>
+            <td>
+                <select class="form-select item-select">
+                    <option value="${item.item_id}">${item.item_name}</option>
+                </select>
+            </td>
+            <td>
+                <input type="number" class="form-control item-qty" value="${item.quantity}">
+            </td>
+            <td>
+                <input type="number" class="form-control item-price" value="${item.unit_price}">
+            </td>
+            <td>
+                <input type="number" class="form-control item-discount" value="${discountValue}">
+            </td>
+            <td>
+                <select class="form-select item-discount-type">
+                    <option value="amount" ${isPercent?"":"selected"}>Amount</option>
+                    <option value="percent" ${isPercent?"selected":""}>Percent</option>
+                </select>
+            </td>
+            <td>
+                <input type="number" class="form-control item-tax" value="${item.tax_percent ?? 15}">
+            </td>
+        </tr>
+        `
+    );
 }

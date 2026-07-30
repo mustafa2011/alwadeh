@@ -303,5 +303,24 @@ class InvoiceSnapshotRepository
         ]);
     
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
-    }    
+    } 
+    public function deleteByInvoiceId(int $invoiceId): void
+    {
+        $tables=[
+            'invoice_party_address',
+            'invoice_party_tax_scheme',
+            'invoice_party_legal_entity',
+            'invoice_customer_party',
+            'invoice_supplier_party'
+        ];
+        foreach($tables as $table){
+            $stmt=$this->db->prepare("
+                DELETE FROM {$table}
+                WHERE invoice_id=:invoice_id
+            ");
+            $stmt->execute([
+                'invoice_id'=>$invoiceId
+            ]);
+        }
+    }     
 }

@@ -86,7 +86,41 @@ class InvoiceRepository
 
         return (int) $this->db->lastInsertId();
     }
-
+    public function update(int $id, array $invoice): void
+    {
+        $sql = "
+        UPDATE invoices SET
+            customer_id=:customer_id,
+            invoice_kind=:invoice_kind,
+            issue_date=:issue_date,
+            issue_time=:issue_time,
+            supply_date=:supply_date,
+            currency_code=:currency_code,
+            document_currency_code=:document_currency_code,
+            tax_currency_code=:tax_currency_code,
+            invoice_hash=:invoice_hash,
+            xml_file_path=:xml_file_path,
+            signed_xml_file_path=:signed_xml_file_path,
+            qr_code=:qr_code
+        WHERE id=:id
+        ";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
+            'id' => $id,
+            'customer_id' => $invoice['customer_id'] ?? null,
+            'invoice_kind' => $invoice['invoice_kind'],
+            'issue_date' => $invoice['issue_date'],
+            'issue_time' => $invoice['issue_time'],
+            'supply_date' => $invoice['issue_date'],
+            'currency_code' => $invoice['currency_code'],
+            'document_currency_code' => $invoice['document_currency_code'],
+            'tax_currency_code' => $invoice['tax_currency_code'],
+            'invoice_hash' => $invoice['invoice_hash'],
+            'xml_file_path' => $invoice['xml_file_path'],
+            'signed_xml_file_path' => $invoice['signed_xml_path'],
+            'qr_code' => $invoice['qr_code']
+        ]);
+    }
     public function findLastIssuedInvoice(int $companyId): ?array
     {
         $stmt = $this->db->prepare("
@@ -193,18 +227,28 @@ class InvoiceRepository
         return $invoice ?: null;
     }    
 
-
     public function findItems(int $invoiceId): array
     {
         $stmt = $this->db->prepare("
-            SELECT *
-            FROM invoice_lines
-            WHERE invoice_id = ?
-            ORDER BY id
+            SELECT
+                l.*,
+                t.tax_percent,
+                t.tax_amount,
+                (l.line_extension_amount+t.tax_amount) AS payable_amount,
+                ac.amount AS discount_amount,
+                ac.percentage AS discount_percentage,
+                ac.charge_indicator,
+                ac.reason AS discount_reason
+            FROM invoice_lines l
+            LEFT JOIN invoice_line_taxes t
+                ON t.invoice_line_id = l.id
+            LEFT JOIN invoice_line_allowance_charges ac
+                ON ac.invoice_line_id = l.id
+                AND ac.charge_indicator=0
+            WHERE l.invoice_id=?
+            ORDER BY l.line_number
         ");
-    
         $stmt->execute([$invoiceId]);
-    
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     
@@ -236,6 +280,5 @@ class InvoiceRepository
         $stmt->execute([$invoiceId]);
     
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-  
+    }   
 }

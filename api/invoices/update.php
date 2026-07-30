@@ -13,24 +13,16 @@ try {
         );
     }
     $service = new InvoiceService();
-    if (!empty($invoiceData['invoiceId'])) {
-        $result = $service->updateInvoice(
-            (int)$invoiceData['invoiceId'],
-            $invoiceData,
-            $invoiceData['submit'] ?? true
-        );
-    } else {
-        $result = $service->issueInvoice(
-            $invoiceData,
-            $invoiceData['submit'] ?? true
-        );
-    }
+    $result=$service->updateInvoice(
+        (int)($invoiceData['invoiceId']??0),
+        $invoiceData,
+        $invoiceData['submit']??false
+    );    
     echo json_encode([
-        'success' => $result['success'],
-        'message' => $result['message'],
-        'data' => $result['data']
-    ],
-    JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+        'success'=>$result['success'],
+        'message'=>$result['message'],
+        'data'=>$result
+    ],JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT);    
 }
 catch(Throwable $e){
     http_response_code(500);

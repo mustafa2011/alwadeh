@@ -25,33 +25,33 @@
                                 <ds:Transform Algorithm="http://www.w3.org/2006/12/xml-c14n11"/>
                             </ds:Transforms>
                             <ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>
-                            <ds:DigestValue>zC/uHNbWsINccpwngbEipBIhX8n4YGiHzSNkinb2kPo=</ds:DigestValue>
+                            <ds:DigestValue>Q4QKTm7ngZrKyTz9Fu6fbA6PEp58qCHrBHL6vkZqdAc=</ds:DigestValue>
                         </ds:Reference>
                         <ds:Reference Type="http://www.w3.org/2000/09/xmldsig#SignatureProperties" URI="#xadesSignedProperties">
                             <ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>
-                            <ds:DigestValue>NmZjYzQ0YWU3YWJiNjM4N2YyZGI2OTllZTU2YmI4ZjY2N2QzNDFmMjlhN2VmNDhmYTQzODZkNTU1ZmIwZDI1YQ==</ds:DigestValue>
+                            <ds:DigestValue>ZGU0Njg4ZmYyMDM4MWVjODU4MDA4MzU2NTI3YTBhNzUwNGEzZjg4Y2NkY2RlMDZkMjgyY2Y3ODI3ZjJhYjE2YQ==</ds:DigestValue>
                         </ds:Reference>
                     </ds:SignedInfo>
-                    <ds:SignatureValue>MEQCIB+UG6FzsDxRGO9M/FLsD/eC4VzamRLIXl2ZAsT0zBLLAiAQU1gZ5tbd5yssewX5fPDNiUV79AMsKDRKM6fOkVYaBw==</ds:SignatureValue>
+                    <ds:SignatureValue>MEUCIFWTtlOQQUJ9i96doxWO2XqBXswfW0SRX+thLc2djbBAAiEA99Noag9hDAvwqUM3VHmsue/Uvkn5fCu9fIH+b69pCDc=</ds:SignatureValue>
                     <ds:KeyInfo>
                         <ds:X509Data>
-                            <ds:X509Certificate>MIICJTCCAcqgAwIBAgIGAZ+R74wgMAoGCCqGSM49BAMCMBUxEzARBgNVBAMMCmVJbnZvaWNpbmcwHhcNMjYwNzI0MDIyMzM4WhcNMzEwNzIzMjEwMDAwWjBiMQswCQYDVQQGEwJTQTEWMBQGA1UECwwNUml5YWRoIEJyYW5jaDEbMBkGA1UECgwSQWx3YWRlaCBJVCBDb21wYW55MR4wHAYDVQQDDBVUU1RaQVRDQS1Db2RlLVNpZ25pbmcwVjAQBgcqhkjOPQIBBgUrgQQACgNCAATf+oL7pvd3GdpsZx4VqGTcgRwA0kyt+AYRBq9Qt98RwPKVhnDrXvPvR2zQdTt4T5b6SEhTqHr2UfXwga+gNtFao4G7MIG4MAwGA1UdEwEB/wQCMAAwgacGA1UdEQSBnzCBnKSBmTCBljE/MD0GA1UEBAw2MS1BbHdhZGVofDItMS4wfDMtNTA0NGM1OWMtYmMzYi00MTIzLTg1MjItODVlYzI2ZTZiZGFhMR8wHQYKCZImiZPyLGQBAQwPMzk5OTk5OTk5OTAwMDAzMQ0wCwYDVQQMDAQxMTAwMREwDwYDVQQaDAhSSE1BMzE4NDEQMA4GA1UEDwwHVHJhZGluZzAKBggqhkjOPQQDAgNJADBGAiEAz0flJmShAycd80a+OMUu/f/tpco1+oTCyTo+f4ctkEQCIQDnskUZ68HwzTmgACQf2PURlj21kAvU5+Hd3pqNvJj+hw==</ds:X509Certificate>
+                            <ds:X509Certificate>MIICJDCCAcqgAwIBAgIGAZ+wYadpMAoGCCqGSM49BAMCMBUxEzARBgNVBAMMCmVJbnZvaWNpbmcwHhcNMjYwNzMwMDAxNjUyWhcNMzEwNzI5MjEwMDAwWjBiMQswCQYDVQQGEwJTQTEWMBQGA1UECwwNUml5YWRoIEJyYW5jaDEbMBkGA1UECgwSQWx3YWRlaCBJVCBDb21wYW55MR4wHAYDVQQDDBVUU1RaQVRDQS1Db2RlLVNpZ25pbmcwVjAQBgcqhkjOPQIBBgUrgQQACgNCAAQrixB0YosUxJ3XRjbJr70sLjtipWhb6w1qwvNlYKAa6P5e8EX8gNm7jfGyy0RemS3cR3EpV6Hgc0+GmEzd2LfBo4G7MIG4MAwGA1UdEwEB/wQCMAAwgacGA1UdEQSBnzCBnKSBmTCBljE/MD0GA1UEBAw2MS1BbHdhZGVofDItMS4wfDMtNmZjMDU0ZjAtMzFkNS00YWZmLWIxOWUtNTg1NjhhNTgwMTk1MR8wHQYKCZImiZPyLGQBAQwPMzk5OTk5OTk5OTAwMDAzMQ0wCwYDVQQMDAQxMTAwMREwDwYDVQQaDAhSSE1BMzE4NDEQMA4GA1UEDwwHVHJhZGluZzAKBggqhkjOPQQDAgNIADBFAiBbdXFvruVKPH/pUn0gI9BrNfYbHYj5qV++SGfBomEIZQIhAMGgtwi9eCItQ8VzfgSqFo0YJZRwnnIJ3WpXskWuIii/</ds:X509Certificate>
                         </ds:X509Data>
                     </ds:KeyInfo>
                     <ds:Object>
                         <xades:QualifyingProperties xmlns:xades="http://uri.etsi.org/01903/v1.3.2#" Target="signature">
                             <xades:SignedProperties Id="xadesSignedProperties">
                                 <xades:SignedSignatureProperties>
-                                    <xades:SigningTime>2026-07-24T05:23:46</xades:SigningTime>
+                                    <xades:SigningTime>2026-07-30T03:19:41</xades:SigningTime>
                                     <xades:SigningCertificate>
                                         <xades:Cert>
                                             <xades:CertDigest>
                                                 <ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>
-                                                <ds:DigestValue>YWUyNThhMzhkZWFiMGE3YjZkZWEzNjA5ZmZiMmU5MjMwMjVjNmJhYjY1Y2U2MmUzN2E3M2ViYWNiZTAyODc5Mg==</ds:DigestValue>
+                                                <ds:DigestValue>YzMxZjU3ZmQwMjFiYzNmMmIzODBiZDFmOTEzYmFiYTUzZjQzMWE1MDlmYzlhM2QxNDY3MTU3NzFhMWFkOWNmOA==</ds:DigestValue>
                                             </xades:CertDigest>
                                             <xades:IssuerSerial>
                                                 <ds:X509IssuerName>CN=eInvoicing</ds:X509IssuerName>
-                                                <ds:X509SerialNumber>1784859823136</ds:X509SerialNumber>
+                                                <ds:X509SerialNumber>1785370617705</ds:X509SerialNumber>
                                             </xades:IssuerSerial>
                                         </xades:Cert>
                                     </xades:SigningCertificate>
@@ -67,9 +67,9 @@
 </ext:UBLExtensions>
     <cbc:ProfileID>reporting:1.0</cbc:ProfileID>
     <cbc:ID>STD00003</cbc:ID>
-    <cbc:UUID>54193f08-b813-4064-b0d2-bf515bd3b78f</cbc:UUID>
-    <cbc:IssueDate>2026-07-23</cbc:IssueDate>
-    <cbc:IssueTime>02:23:44Z</cbc:IssueTime>
+    <cbc:UUID>91a2dfdf-4071-4dc5-b0da-d513036bebfa</cbc:UUID>
+    <cbc:IssueDate>2026-07-29</cbc:IssueDate>
+    <cbc:IssueTime>00:19:39Z</cbc:IssueTime>
     <cbc:InvoiceTypeCode name="0100000">383</cbc:InvoiceTypeCode>
     <cbc:DocumentCurrencyCode>SAR</cbc:DocumentCurrencyCode>
     <cbc:TaxCurrencyCode>SAR</cbc:TaxCurrencyCode>
@@ -91,7 +91,7 @@
     <cac:AdditionalDocumentReference>
         <cbc:ID>QR</cbc:ID>
         <cac:Attachment>
-            <cbc:EmbeddedDocumentBinaryObject mimeCode="text/plain">ARJBbHdhZGVoIElUIENvbXBhbnkCDzM5OTk5OTk5OTkwMDAwMwMUMjAyNi0wNy0yM1QwMjoyMzo0NFoEBTExLjUwBQQxLjUwBix6Qy91SE5iV3NJTmNjcHduZ2JFaXBCSWhYOG40WUdpSHpTTmtpbmIya1BvPQdgTUVRQ0lCK1VHNkZ6c0R4UkdPOU0vRkxzRC9lQzRWemFtUkxJWGwyWkFzVDB6QkxMQWlBUVUxZ1o1dGJkNXlzc2V3WDVmUEROaVVWNzlBTXNLRFJLTTZmT2tWWWFCdz09CFgwVjAQBgcqhkjOPQIBBgUrgQQACgNCAATf+oL7pvd3GdpsZx4VqGTcgRwA0kyt+AYRBq9Qt98RwPKVhnDrXvPvR2zQdTt4T5b6SEhTqHr2UfXwga+gNtFa</cbc:EmbeddedDocumentBinaryObject>
+            <cbc:EmbeddedDocumentBinaryObject mimeCode="text/plain">ARJBbHdhZGVoIElUIENvbXBhbnkCDzM5OTk5OTk5OTkwMDAwMwMUMjAyNi0wNy0yOVQwMDoxOTozOVoEBTExLjUwBQQxLjUwBixRNFFLVG03bmdackt5VHo5RnU2ZmJBNlBFcDU4cUNIckJITDZ2a1pxZEFjPQdgTUVVQ0lGV1R0bE9RUVVKOWk5NmRveFdPMlhxQlhzd2ZXMFNSWCt0aExjMmRqYkJBQWlFQTk5Tm9hZzloREF2d3FVTTNWSG1zdWUvVXZrbjVmQ3U5ZklIK2I2OXBDRGM9CFgwVjAQBgcqhkjOPQIBBgUrgQQACgNCAAQrixB0YosUxJ3XRjbJr70sLjtipWhb6w1qwvNlYKAa6P5e8EX8gNm7jfGyy0RemS3cR3EpV6Hgc0+GmEzd2LfB</cbc:EmbeddedDocumentBinaryObject>
         </cac:Attachment>
     </cac:AdditionalDocumentReference>
     <cac:Signature>
@@ -148,7 +148,7 @@
         </cac:Party>
     </cac:AccountingCustomerParty>
     <cac:Delivery>
-        <cbc:ActualDeliveryDate>2026-07-24</cbc:ActualDeliveryDate>
+        <cbc:ActualDeliveryDate>2026-07-30</cbc:ActualDeliveryDate>
     </cac:Delivery>
     <cac:PaymentMeans>
         <cbc:PaymentMeansCode>10</cbc:PaymentMeansCode>

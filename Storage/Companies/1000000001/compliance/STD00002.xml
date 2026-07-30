@@ -15,9 +15,9 @@
     </ext:UBLExtensions>
     <cbc:ProfileID>reporting:1.0</cbc:ProfileID>
     <cbc:ID>STD00002</cbc:ID>
-    <cbc:UUID>ddc62ddc-13ad-4e8d-885e-392d479fc21c</cbc:UUID>
-    <cbc:IssueDate>2026-07-23</cbc:IssueDate>
-    <cbc:IssueTime>02:23:44Z</cbc:IssueTime>
+    <cbc:UUID>31b3c2b2-0377-47db-bb1f-c9190e6f156f</cbc:UUID>
+    <cbc:IssueDate>2026-07-29</cbc:IssueDate>
+    <cbc:IssueTime>00:19:39Z</cbc:IssueTime>
     <cbc:InvoiceTypeCode name="0100000">381</cbc:InvoiceTypeCode>
     <cbc:DocumentCurrencyCode>SAR</cbc:DocumentCurrencyCode>
     <cbc:TaxCurrencyCode>SAR</cbc:TaxCurrencyCode>
@@ -93,7 +93,7 @@
         </cac:Party>
     </cac:AccountingCustomerParty>
     <cac:Delivery>
-        <cbc:ActualDeliveryDate>2026-07-24</cbc:ActualDeliveryDate>
+        <cbc:ActualDeliveryDate>2026-07-30</cbc:ActualDeliveryDate>
     </cac:Delivery>
     <cac:PaymentMeans>
         <cbc:PaymentMeansCode>10</cbc:PaymentMeansCode>

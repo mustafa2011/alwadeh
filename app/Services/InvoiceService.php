@@ -14,6 +14,7 @@ use App\Services\InvoiceChainService;
 use App\Services\InvoiceSubmissionService;
 use App\Services\InvoiceXmlService;
 use App\Repositories\CompanySettingsRepository;
+use App\Repositories\ItemRepository;
 
 use App\Core\Database;
 use PDO;
@@ -35,6 +36,7 @@ class InvoiceService
     private InvoiceSubmissionService $invoiceSubmissionService;
     private InvoiceXmlService $invoiceXmlService;
     private CompanySettingsRepository $companySettingsRepository;
+    private ItemRepository $itemRepository;
 
     public function __construct() {
         $this->db = Database::getConnection();
@@ -52,11 +54,10 @@ class InvoiceService
         $this->invoiceSubmissionService = new InvoiceSubmissionService(); 
         $this->invoiceXmlService = new InvoiceXmlService();   
         $this->companySettingsRepository = new CompanySettingsRepository();
+        $this->customerRepository = new CustomerRepository();
+        $this->itemRepository = new ItemRepository();
     }
 
-    // public function createInvoice(array $invoiceData): array {
-    //     return $this->issueInvoice($invoiceData, false);
-    // }
     public function createInvoice(array $invoiceData): array
     {
         return $this->issueInvoice(
@@ -81,7 +82,8 @@ class InvoiceService
             );
         } else {
             $invoiceData['customer'] = [];
-        }           
+        }
+        $invoiceData['items'] = $this->prepareItems($invoiceData['items'] ?? []);           
         $invoice = $this->invoiceBuilder->prepare(
             $type,
             $this->companyService->buildSupplier(),
@@ -180,5 +182,96 @@ class InvoiceService
     public function processInvoice(array $invoiceData): array {
         return $this->issueInvoice($invoiceData);
     }
-
+    private function prepareItems(array $items): array
+    {
+        $company = $this->storageRepository->loadCurrentCompany();
+        foreach ($items as &$item) {
+            $itemData = $this->itemRepository->find(
+                (int)$company['id'],
+                (int)$item['itemId']
+            );
+            $this->invoiceValidator->validateItem($item);
+            $item['id'] = $itemData['id'];
+            $item['name'] = $itemData['item_name'];
+            $item['unitCode'] = $itemData['unit_id']
+                ? 'PCE'
+                : 'C62';
+            $item['taxCategory'] = [
+                'id' => 'S',
+                'percent' => (float)($itemData['tax_percent'] ?? 15)
+            ];
+            if (!empty($item['discount']['value'])) {
+                $unitPrice = (float)($item['unitPrice'] ?? 0);
+                if ($item['discount']['type'] === 'percent') {
+                    $item['price']['allowanceCharges'] = [
+                        [
+                            'isCharge' => false,
+                            'reason' => 'Discount',
+                            'amount' => ($unitPrice * $item['discount']['value'] / 100),
+                            'baseAmount' => $unitPrice,
+                            'percentage' => (float)$item['discount']['value'],
+                            'taxCategory' => $item['taxCategory']
+                        ]
+                    ];
+                } else {
+                    $item['price']['allowanceCharges'] = [
+                        [
+                            'isCharge' => false,
+                            'reason' => 'Discount',
+                            'amount' => (float)$item['discount']['value'],
+                            'baseAmount' => $unitPrice,
+                            'percentage' => 0,
+                            'taxCategory' => $item['taxCategory']
+                        ]
+                    ];
+                }
+            }
+        }
+        return $items;
+    } 
+    public function updateInvoice(int $invoiceId,array $invoiceData,bool $submit=false): array
+    {
+        $oldInvoice=$this->invoiceRepository->findById($invoiceId);
+        $this->invoiceValidator->validateUpdateInvoice($oldInvoice);
+        $company=$this->storageRepository->loadCurrentCompany();
+        $settings=$this->companySettingsRepository->loadSettings();
+        $type=$this->invoiceValidator->getInvoiceType($invoiceData);
+        if($type==='standard'){
+            $invoiceData['customer']=$this->customerRepository->findForInvoice($invoiceData['customerId']);
+        }else{
+            $invoiceData['customer']=[];
+        }
+        $invoiceData['items']=$this->prepareItems($invoiceData['items']??[]);
+        $chain=[
+            'icv'=>$oldInvoice['icv'],
+            'previous_hash'=>$oldInvoice['previous_invoice_hash']
+        ];
+        $invoice=$this->invoiceBuilder->prepare(
+            $type,
+            $this->companyService->buildSupplier(),
+            $settings['environment']??null,
+            $chain,
+            $invoiceData
+        );
+        $invoice['uuid']=$oldInvoice['invoice_uuid'];
+        $invoice['id']=$oldInvoice['invoice_number'];
+        $totals=$this->invoiceCalculationService->calculate($invoiceData['items']);
+        $invoice=$this->invoiceBuilder->build($invoice,$totals);
+        $package=$this->invoiceXmlService->buildPackage(
+            $invoice,
+            $this->storageRepository->getInvoicesDirectory()
+        );
+        $this->invoicePersistenceService->update(
+            $invoiceId,
+            $invoice,
+            $package,
+            $chain,
+            $invoiceData
+        );
+        return [
+            'success'=>true,
+            'invoice_id'=>$invoiceId,
+            'message'=>'Invoice updated successfully.'
+        ];
+    }     
 }

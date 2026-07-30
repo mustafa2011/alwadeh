@@ -75,7 +75,8 @@ class ItemRepository
                 i.*,
                 c.category_name,
                 u.unit_name,
-                t.description tax_category_name
+                t.description tax_category_name,
+                t.tax_percent
                 FROM items i
                 LEFT JOIN item_categories c
                 ON c.id=i.category_id

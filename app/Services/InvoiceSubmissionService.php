@@ -29,9 +29,9 @@ class InvoiceSubmissionService
     ): array {
 
         $credentials = $this->certificateRepository->loadProductionCredentials();
-
-        $isSimplified =
-            ($package['invoice']['invoiceType']['invoice'] ?? null) === 'simplified';
+        
+        $isSimplified = ($package['invoice']['invoiceType']['invoice'] ?? null) === 'simplified';
+        
         $result = $this->submitInvoice(
             $api,
             $credentials,
@@ -40,7 +40,7 @@ class InvoiceSubmissionService
             $package['uuid'],
             $isSimplified
         );
-
+        
         if (!$isSimplified && !empty($result['cleared_xml'])) {
 
             $path = $this->storage->saveClearedInvoice(

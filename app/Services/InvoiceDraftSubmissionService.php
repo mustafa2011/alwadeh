@@ -26,10 +26,16 @@ class InvoiceDraftSubmissionService
 
     public function submit(int $invoiceId): array
     {
-        $invoice = $this->invoiceRepository->findDraft($invoiceId);
-
+        $invoice = $this->invoiceRepository->findById($invoiceId);
+        
         if (!$invoice) {
-            throw new \Exception('Draft invoice not found.');
+            throw new \Exception('Invoice not found.');
+        }
+    
+        if (($invoice['invoice_status'] ?? null) !== 'signed') {
+            throw new \Exception(
+                'Only signed invoices can be submitted.'
+            );
         }
 
         $package = [
@@ -46,14 +52,14 @@ class InvoiceDraftSubmissionService
                     'invoice' => $invoice['invoice_kind']
                 ]
             ]
-        ];
+        ];       
         $api = $this->chainService->api();
-
+        
         $result = $this->submissionService->submit(
             $api,
             $package
         );
-
+        
         if ($result['success']) {
 
             $status =

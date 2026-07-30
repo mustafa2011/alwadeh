@@ -126,13 +126,7 @@ document.getElementById('generateCertificateForm').addEventListener('submit', fu
             `;       
             goToStep('step1', 'step2');
             setTimeout(function () {
-
-                showAlert(
-                    'wizardMessage',
-                    'success',
-                    result.message
-                );
-            
+                showSuccess(result.message);
             }, 250);
     
         } else {
@@ -142,13 +136,7 @@ document.getElementById('generateCertificateForm').addEventListener('submit', fu
                 <i class="bi bi-check-circle-fill me-1"></i>
                 Certificate Generated
             `;       
-    
-            showAlert(
-                'wizardMessage',
-                'danger',
-                result.message
-            );
-    
+            showSuccess(result.message);
         }
     
     })
@@ -160,12 +148,7 @@ document.getElementById('generateCertificateForm').addEventListener('submit', fu
             <i class="bi bi-check2-circle me-1"></i>
             Generate Certificate
         `;
-        showAlert(
-            'wizardMessage',
-            'danger',
-            error.message ?? 'Unexpected error.'
-        );        
-    
+        showError(error.message);
     });
 
 });
@@ -202,13 +185,7 @@ document.getElementById('requestCertificateForm').addEventListener('submit', fun
     })
     .then(response => response.json())
     .then(result => {
-
-        showAlert(
-            'wizardMessage',
-            result.success ? 'success' : 'danger',
-            result.message
-        );
-
+        result.success ? showSuccess(result.message) : showError(result.message);
         if (result.success) {
 
             btn.classList.remove('btn-success');
@@ -233,21 +210,12 @@ document.getElementById('requestCertificateForm').addEventListener('submit', fun
 
     })
     .catch(error => {
-
-        showAlert(
-            'wizardMessage',
-            'danger',
-            error
-        );
-
+        showError(error.message);
         Components.loadingButton(btn, false);
-
         btn.innerHTML = `
             <i class="bi bi-check2-circle me-1"></i>
             Request Compliance Certificate
         `;
-
-
     });
 
 });
@@ -278,15 +246,8 @@ document.getElementById('complianceForm').addEventListener('submit', function (e
     })
     .then(response => response.json())
     .then(result => {
-
-        showAlert(
-            'wizardMessage',
-            result.success ? 'success' : 'danger',
-            result.message
-        );
-
+        result.success ? showSuccess(result.success) : showError(result.success);
         if (result.success) {
-
             btn.classList.remove('btn-success');
             btn.classList.add('btn-primary');
 
@@ -294,14 +255,10 @@ document.getElementById('complianceForm').addEventListener('submit', function (e
                 <i class="bi bi-check-circle-fill me-1"></i>
                 Compliance Completed
             `;
-
             // جاهز لإضافة Step 4 مستقبلاً
             // goToStep('step3', 'step4');
-
         } else {
-
             Components.loadingButton(btn, false);
-
             btn.innerHTML = `
                 <i class="bi bi-check2-circle me-1"></i>
                 Run Compliance Check
@@ -310,45 +267,15 @@ document.getElementById('complianceForm').addEventListener('submit', function (e
 
     })
     .catch(error => {
-
-        showAlert(
-            'wizardMessage',
-            'danger',
-            error
-        );
-
+        showError(error.message);
         Components.loadingButton(btn, false);
-
         btn.innerHTML = `
             <i class="bi bi-check2-circle me-1"></i>
             Run Compliance Check
         `;
-
-
     });
 
 });
-
-/**
- * Show Bootstrap alert inside container.
- *
- * @param {string} containerId
- * @param {string} type
- * @param {string} message
- */
-if (typeof showAlert !== 'function') {
-
-    function showAlert(containerId, type, message)
-    {
-        document.getElementById(containerId).innerHTML = `
-            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        `;
-    }
-
-}
 
 /**
  * Navigate between wizard steps.
