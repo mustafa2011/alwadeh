@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Repositories;
 use PDO;
 class InvoiceLineRepository
@@ -14,7 +13,6 @@ class InvoiceLineRepository
         foreach ($lines as $index => $line) {
             $item = $line['item'] ?? $line;
             $price = $line['price'] ?? [];
-            
             $stmt = $this->db->prepare("
                 INSERT INTO invoice_lines (
                     invoice_id,
@@ -74,17 +72,17 @@ class InvoiceLineRepository
                     'tax_scheme_id' => $taxCategory['taxScheme']['id'] ?? 'VAT',
                 ]);
             }
-            
-            foreach ($price['allowanceCharges'] ?? [] as $allowance) {
+            foreach ($line['allowanceCharges'] ?? [] as $allowance) {
                 $taxCategory = $allowance['taxCategory'] ?? [];
                 $stmt = $this->db->prepare("
                     INSERT INTO invoice_line_allowance_charges (
                         invoice_line_id,
                         charge_indicator,
+                        reason_code,
                         reason,
                         amount,
                         base_amount,
-                        percentage,
+                        multiplier_factor,
                         currency_code,
                         tax_category_id,
                         tax_percent,
@@ -92,24 +90,25 @@ class InvoiceLineRepository
                     ) VALUES (
                         :invoice_line_id,
                         :charge_indicator,
+                        :reason_code,
                         :reason,
                         :amount,
                         :base_amount,
-                        :percentage,
+                        :multiplier_factor,
                         :currency_code,
                         :tax_category_id,
                         :tax_percent,
                         :tax_scheme_id
                     )
                 ");
-                $percentage = round((float)($allowance['percentage'] ?? 0),2);
                 $stmt->execute([
                     'invoice_line_id' => $lineId,
-                    'charge_indicator' => !empty($allowance['isCharge']) ? 1 : 0,
+                    'charge_indicator' => !empty($allowance['chargeIndicator']) ? 1 : 0,
+                    'reason_code' => $allowance['reasonCode'] ?? null,
                     'reason' => $allowance['reason'] ?? null,
+                    'multiplier_factor' => $allowance['multiplierFactorNumeric'] ?? 0,
                     'amount' => $allowance['amount'] ?? 0,
                     'base_amount' => $allowance['baseAmount'] ?? 0,
-                    'percentage' =>  $percentage,
                     'currency_code' => 'SAR',
                     'tax_category_id' => $taxCategory['id'] ?? 'S',
                     'tax_percent' => $taxCategory['percent'] ?? 15,

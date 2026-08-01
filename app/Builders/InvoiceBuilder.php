@@ -1,19 +1,15 @@
 <?php
-
 namespace App\Builders;
 use DateTimeImmutable;
 use DateTimeZone;
 use App\Services\InvoiceDocumentService;
-
 class InvoiceBuilder
 {
     private InvoiceDocumentService $documentService;
-
     public function __construct()
     {
         $this->documentService = new InvoiceDocumentService();
     }
-
     public function prepare(
         string $type,
         array $supplier,
@@ -21,12 +17,10 @@ class InvoiceBuilder
         array $chain,
         array $invoiceData,
     ): array {
-    
         $now = new DateTimeImmutable(
             'now',
             new DateTimeZone('Asia/Riyadh')
         );
-    
         $invoice = [
             'uuid' => generateUUID(),
             'id' => $invoiceData['id'] ?? $invoiceData['invoiceNumber'],
@@ -54,29 +48,23 @@ class InvoiceBuilder
             ],
             'environment' => $environment,
         ];
-    
         $invoice = array_replace_recursive(
             $invoice,
             $invoiceData
         );
-    
         if (
             !isset($invoice['additionalDocuments']) ||
             !is_array($invoice['additionalDocuments'])
         ) {
             $invoice['additionalDocuments'] = [];
         }
-    
         $hasICV = false;
         $hasPIH = false;
-    
         foreach ($invoice['additionalDocuments'] as &$document) {
-    
             if (($document['id'] ?? '') === 'ICV') {
                 $document['uuid'] = (string)$chain['icv'];
                 $hasICV = true;
             }
-    
             if (($document['id'] ?? '') === 'PIH') {
                 $document['attachment'] = [
                     'content' => empty($chain['previous_hash'])
@@ -86,16 +74,13 @@ class InvoiceBuilder
                 $hasPIH = true;
             }
         }
-    
         unset($document);
-    
         if (!$hasICV) {
             $invoice['additionalDocuments'][] = [
                 'id' => 'ICV',
                 'uuid' => (string)$chain['icv'],
             ];
         }
-    
         if (!$hasPIH) {
             $invoice['additionalDocuments'][] = [
                 'id' => 'PIH',
@@ -106,7 +91,6 @@ class InvoiceBuilder
                 ]
             ];
         }
-    
         if (
             !empty($invoiceData['billingRef'])
         ) {
@@ -116,7 +100,6 @@ class InvoiceBuilder
                 ]
             ];
         }
-    
         if (
             $invoice['invoiceType']['type'] === 'credit' ||
             $invoice['invoiceType']['type'] === 'debit'
@@ -124,12 +107,9 @@ class InvoiceBuilder
             $invoice['paymentMeans']['note']
                 = 'CANCELLATION_OR_TERMINATION';
         }
-    
         $invoice['invoice_chain'] = $chain;
-    
         return $invoice;
     }
-
     public function build(
         array $invoice,
         array $totals
@@ -139,10 +119,8 @@ class InvoiceBuilder
             $totals
         );
     }
-
     public function buildInvoice(array $supplier, array $options)
     {
-
         $uuid = generateUUID();
         $now = new DateTimeImmutable(
             'now',
@@ -275,13 +253,11 @@ class InvoiceBuilder
         }        
         return $invoice;
     } 
-    
     public function buildCustomer()
     {
         return [
             'registrationName' => 'شركة نماذج فاتورة المحدودة',
             'taxId'            => '399999999800003',
-    
             'address' => [
                 'street'         => 'صلاح الدين',
                 'buildingNumber' => '1111',
@@ -292,13 +268,10 @@ class InvoiceBuilder
             ],
         ];
     }
-    
-    
     public function buildDelivery(DateTimeImmutable $date)
     {
         return [
             'actualDeliveryDate' => $date->format('Y-m-d'),
         ];
     } 
-        
 }

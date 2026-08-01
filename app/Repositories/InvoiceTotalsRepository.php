@@ -16,30 +16,6 @@ class InvoiceTotalsRepository
         int $invoiceId,
         array $legalMonetaryTotal
     ): void {
-        $allowanceStmt = $this->db->prepare("
-        SELECT 
-            COALESCE(SUM(amount),0)
-        FROM invoice_line_allowance_charges ac
-        INNER JOIN invoice_lines l
-            ON l.id = ac.invoice_line_id
-        WHERE l.invoice_id = ?
-        AND ac.charge_indicator = 0
-    ");
-        $allowanceStmt->execute([$invoiceId]);
-        $allowanceTotal = (float)$allowanceStmt->fetchColumn();
-        
-        $chargeStmt = $this->db->prepare("
-            SELECT 
-                COALESCE(SUM(amount),0)
-            FROM invoice_line_allowance_charges ac
-            INNER JOIN invoice_lines l
-                ON l.id = ac.invoice_line_id
-            WHERE l.invoice_id = ?
-            AND ac.charge_indicator = 1
-        ");
-        $chargeStmt->execute([$invoiceId]);
-        $chargeTotal = (float)$chargeStmt->fetchColumn();
-
         $stmt = $this->db->prepare("
             INSERT INTO invoice_totals (
                 invoice_id,
@@ -67,8 +43,8 @@ class InvoiceTotalsRepository
         $stmt->execute([
             'invoice_id' => $invoiceId,
             'line_extension_amount' => $legalMonetaryTotal['lineExtensionAmount'] ?? 0,
-            'allowance_total_amount' => $allowanceTotal,
-            'charge_total_amount' => $chargeTotal,
+            'allowance_total_amount' => $legalMonetaryTotal['allowanceTotalAmount'] ?? 0,
+            'charge_total_amount' => $legalMonetaryTotal['chargeTotalAmount'] ?? 0,
             'tax_exclusive_amount' => $legalMonetaryTotal['taxExclusiveAmount'] ?? 0,
             'tax_inclusive_amount' => $legalMonetaryTotal['taxInclusiveAmount'] ?? 0,
             'payable_amount' => $legalMonetaryTotal['payableAmount'] ?? 0,

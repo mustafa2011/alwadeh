@@ -1,35 +1,38 @@
 let itemsCache = [];
+let invoiceAllowances = [];
 let customerBox;
 let invoiceKind;
 document.addEventListener(
     "DOMContentLoaded",
     function(){
-        const form =
-            document.getElementById(
-                "invoiceCreateForm"
-            );
-        const addItem =
-            document.getElementById(
-                "addItem"
-            );
-            invoiceKind=document.getElementById("invoiceKind");
-            customerBox=document.getElementById("customerSection");
-            customerSelect=document.getElementById("customerSelect");          
-            function toggleCustomer(){
-                if(invoiceKind.value==="standard"){
-                    customerBox.style.display="block";
-                    loadCustomers();
-                }else{
-                    customerBox.style.display="none";
-                    customerSelect.value="";
-                }
+        const form = document.getElementById("invoiceCreateForm");
+        const addItem = document.getElementById("addItem");
+        invoiceKind=document.getElementById("invoiceKind");
+        customerBox=document.getElementById("customerSection");
+        customerSelect=document.getElementById("customerSelect");
+        document
+        .getElementById("addInvoiceAllowance")
+        .addEventListener(
+            "click",
+            function(){
+                addInvoiceAllowanceRow();
             }
-            invoiceKind.addEventListener("change",toggleCustomer);
-            toggleCustomer();
-            loadItems();
-            if(typeof invoiceId !== "undefined" && invoiceId){
-                loadInvoice(invoiceId);
-            }            
+        );                                
+        function toggleCustomer(){
+            if(invoiceKind.value==="standard"){
+                customerBox.style.display="block";
+                loadCustomers();
+            }else{
+                customerBox.style.display="none";
+                customerSelect.value="";
+            }
+        }
+        invoiceKind.addEventListener("change",toggleCustomer);
+        toggleCustomer();
+        loadItems();
+        if(typeof invoiceId !== "undefined" && invoiceId){
+            loadInvoice(invoiceId);
+        }            
         addItem.addEventListener(
             "click",
             function(){
@@ -48,8 +51,8 @@ document.addEventListener(
                         </td>
                         <td>
                             <input type="number"
-                                   class="form-control item-qty"
-                                   value="1">
+                                class="form-control item-qty"
+                                value="1">
                         </td>
                         <td>
                             <input type="number"
@@ -58,27 +61,27 @@ document.addEventListener(
                         </td>
                         <td>
                             <input type="number"
-                                class="form-control item-discount"
-                                value="0"
-                                min="0"
-                                step="0.01">
-                        </td>
-                        <td>
-                            <select class="form-select item-discount-type">
-                                <option value="amount">Amount</option>
-                                <option value="percent">Percent</option>
-                            </select>
-                        </td>
-                        <td>
-                            <input type="number"
                                 class="form-control item-tax"
                                 value="15">
                         </td>
+                        <td>
+                            <button type="button" class="btn btn-danger btn-sm remove-item">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>                                               
                     </tr>
                     `
                 );
                 fillItemList(
                     tbody.lastElementChild.querySelector(".item-select")
+                );
+                const row = tbody.lastElementChild;
+                row.querySelector(".remove-item")
+                .addEventListener(
+                    "click",
+                    function(){
+                        row.remove();
+                    }
                 );                
             }
         );
@@ -114,31 +117,11 @@ document.addEventListener(
                                     ".item-tax"
                                 ).value
                             );
-                        let discount =
-                            parseFloat(
-                                row.querySelector(
-                                    ".item-discount"
-                                ).value
-                            );
-                        let discountType =
-                            row.querySelector(
-                                ".item-discount-type"
-                            ).value;
-                        let discountAmount=discount;
-                        if(discountType==="percent"){
-                            discountAmount=(qty*price)*(discount/100);
-                        }                            
                         items.push({
                             itemId:itemId,
                             quantity:qty,
                             unitPrice:price,
                             unitCode:"PCE",
-                            discount:{
-                                type:discountType,
-                                value:discount,
-                                amount:discountAmount,
-                                reason:"Discount"
-                            },                                                        
                             taxCategory:{
                                 id:"S",
                                 percent:tax
@@ -146,7 +129,6 @@ document.addEventListener(
                         });
                     }
                 );
-
                 let invoiceType =
                     document
                     .getElementById(
@@ -154,15 +136,15 @@ document.addEventListener(
                     )
                     .value;
                     let invoiceData = {
-                        invoiceNumber: document.getElementById("invoiceNumber").value,
-                        invoiceType: {
-                            invoice: invoiceType,
-                            type: "invoice"
+                        invoiceNumber:document.getElementById("invoiceNumber").value,
+                        invoiceType:{
+                            invoice:invoiceType,
+                            type:"invoice"
                         },
-                        customerId: document.getElementById("customerSelect").value || null,
-                        items: items
+                        customerId:document.getElementById("customerSelect").value||null,
+                        items:items
                     };
-
+                    invoiceData.allowanceCharges = collectInvoiceAllowances();
                     if (invoiceType === "standard" && !invoiceData.customerId) {
                         showError("Please select customer for standard invoice.");                        
                         return;
@@ -171,7 +153,6 @@ document.addEventListener(
                         invoiceData,
                         submitInvoice
                     );
-
                     submitInvoice = true;                    
             }
         );
@@ -205,13 +186,10 @@ function createInvoice(data, submit = true){
     .then(result => {
         showSuccess(result.message);    
         if (result.success && !submit) {
-    
             setTimeout(function () {
                 window.location.href = "?page=invoices";
             }, 500);
-    
         }
-    
     })
     .catch(error => {
         console.error(error);
@@ -248,7 +226,6 @@ function fillItemLists(){
     document.querySelectorAll(".item-select").forEach(function(select){
         fillItemList(select);
     });
-
 }
 function fillItemList(select){
     select.innerHTML='<option value="">Select Item</option>';
@@ -263,18 +240,17 @@ function fillItemList(select){
     };
 }
 function itemChanged(select){
-    const row=select.closest("tr");
-    const item=itemsCache.find(i=>i.id==select.value);
+    const row = select.closest("tr");
+    const item = itemsCache.find(
+        i => i.id == select.value
+    );
     if(!item){
         return;
     }
-    row.querySelector(".item-price").value=item.selling_price;
-    row.querySelector(".item-tax").value=item.tax_percent;
-    row.querySelector(".item-discount").value = item.discount_amount ?? 0;
-    row.querySelector(".item-discount-type").value =
-        (Number(item.discount_percentage) > 0)
-            ? "percent"
-            : "amount";    
+    row.querySelector(".item-price").value =
+        item.selling_price;
+    row.querySelector(".item-tax").value =
+        item.tax_percent;
 }
 function loadInvoice(id){
     fetch(window.APP.baseUrl+"/api/invoices/view.php?mode=edit&id="+id)
@@ -286,7 +262,6 @@ function loadInvoice(id){
         const invoice=result.data;
         document.getElementById("invoiceNumber").value=invoice.invoice_number;
         document.getElementById("invoiceKind").value=invoice.invoice_kind;
-        
         if(invoice.invoice_kind==="standard"){
             customerBox.style.display="block";
             loadCustomers().then(()=>{
@@ -306,6 +281,7 @@ function addInvoiceRow(item){
     const discountValue=isPercent
         ? item.discount_percentage
         : (item.discount_amount ?? 0);
+
     tbody.insertAdjacentHTML(
         "beforeend",
         `
@@ -316,24 +292,127 @@ function addInvoiceRow(item){
                 </select>
             </td>
             <td>
-                <input type="number" class="form-control item-qty" value="${item.quantity}">
+                <input type="number"
+                    class="form-control item-qty"
+                    value="${item.quantity}">
             </td>
             <td>
-                <input type="number" class="form-control item-price" value="${item.unit_price}">
+                <input type="number"
+                    class="form-control item-price"
+                    value="${item.unit_price}">
             </td>
             <td>
-                <input type="number" class="form-control item-discount" value="${discountValue}">
+                <input type="number"
+                    class="form-control item-discount"
+                    value="${discountValue}">
             </td>
             <td>
                 <select class="form-select item-discount-type">
-                    <option value="amount" ${isPercent?"":"selected"}>Amount</option>
-                    <option value="percent" ${isPercent?"selected":""}>Percent</option>
+                    <option value="amount" ${isPercent?"":"selected"}>
+                        Amount
+                    </option>
+                    <option value="percent" ${isPercent?"selected":""}>
+                        Percent
+                    </option>
                 </select>
             </td>
             <td>
-                <input type="number" class="form-control item-tax" value="${item.tax_percent ?? 15}">
+                <input type="number"
+                    class="form-control item-tax"
+                    value="${item.tax_percent ?? 15}">
+            </td>
+            <td>
+                <button type="button"
+                    class="btn btn-danger btn-sm remove-item">
+                    <i class="bi bi-trash"></i>
+                </button>
             </td>
         </tr>
         `
     );
+    const row=tbody.lastElementChild;
+    row.querySelector(".remove-item")
+    .addEventListener(
+        "click",
+        function(){
+            row.remove();
+        }
+    );
+}
+function addInvoiceAllowanceRow(data = {}) {
+    const body = document.getElementById("invoiceAllowanceBody");
+    body.insertAdjacentHTML(
+        "beforeend",
+        `
+        <tr>
+            <td>
+                <select class="form-select ac-type">
+                    <option value="0">Allowance</option>
+                    <option value="1">Charge</option>
+                </select>
+            </td>
+            <td>
+                <input type="text"
+                    class="form-control ac-reason">
+            </td>
+            <td>
+                <select class="form-select ac-mode">
+                    <option value="amount">Amount</option>
+                    <option value="percent">Percent</option>
+                </select>
+            </td>
+            <td>
+                <input type="number"
+                    class="form-control ac-value"
+                    step="0.01"
+                    value="0">
+            </td>
+            <td>
+                <button type="button"
+                    class="btn btn-danger btn-sm remove-ac">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        </tr>
+        `
+    );
+    const row = body.lastElementChild;
+    row.querySelector(".ac-type").value =
+        data.chargeIndicator ? "1" : "0";
+    row.querySelector(".ac-reason").value =
+        data.reason ?? "";
+    row.querySelector(".ac-mode").value =
+        data.mode ?? "amount";
+    row.querySelector(".ac-value").value =
+        data.value ?? 0;
+    row.querySelector(".remove-ac")
+        .addEventListener(
+            "click",
+            function () {
+                row.remove();
+            }
+        );
+}
+function collectInvoiceAllowances(){
+    let data=[];
+    document.querySelectorAll("#invoiceAllowanceBody tr")
+    .forEach(function(row){
+        const value=parseFloat(
+            row.querySelector(".ac-value").value
+        )||0;
+        if(value<=0){
+            return;
+        }
+        data.push({
+            chargeIndicator:
+                row.querySelector(".ac-type").value==="1",
+            reasonCode:"95",
+            reason:
+                row.querySelector(".ac-reason").value||"Allowance",
+            mode:
+                row.querySelector(".ac-mode").value,
+            value:value
+        });
+    });
+    return data;
 }

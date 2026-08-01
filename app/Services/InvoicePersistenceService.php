@@ -8,7 +8,6 @@ use App\Repositories\InvoiceLineRepository;
 use App\Repositories\InvoiceSnapshotRepository;
 use App\Core\Database;
 use PDO;
-
 class InvoicePersistenceService
 {
     private PDO $db;
@@ -18,7 +17,6 @@ class InvoicePersistenceService
     protected InvoiceTaxTotalsRepository $invoiceTaxTotalsRepository;
     protected InvoiceLineRepository $invoiceLineRepository;
     protected InvoiceSnapshotRepository $invoiceSnapshotRepository;
-
     public function __construct()
     {
         $this->db = Database::getConnection();
@@ -29,7 +27,6 @@ class InvoicePersistenceService
         $this->invoiceLineRepository = new InvoiceLineRepository($this->db);
         $this->invoiceSnapshotRepository=new InvoiceSnapshotRepository($this->db);
     }
-
     public function save(
         array $invoice,
         array $package,
@@ -55,7 +52,6 @@ class InvoicePersistenceService
             } else {
                 $status = 'rejected';
             }          
-
             $invoiceId = $this->invoiceRepository->create([
                 'company_id' => $company['id'],
                 'customer_id' => $invoice['invoiceType']['invoice'] === 'standard'
@@ -80,45 +76,40 @@ class InvoicePersistenceService
                 'qr_code' => $package['qr_code'] ?? null,
                 'created_by' => $_SESSION['user']['id'] ?? null,
             ]);         
-            
             $this->invoiceZatcaRepository->create(
                 $invoiceId,
                 $package,
                 $chain,
                 $submitResult
             );
-    
+            $this->invoiceLineRepository->create(
+                $invoiceId,
+                $invoice['invoiceLines']
+            );            
             $this->invoiceTotalsRepository->create(
                 $invoiceId,
                 $invoice['legalMonetaryTotal']
             );
-    
             $this->invoiceTaxTotalsRepository->create(
                 $invoiceId,
                 $invoice['taxTotal']
             );
-    
-            $this->invoiceLineRepository->create(
-                $invoiceId,
-                $invoice['invoiceLines']
-            );
-    
+            if (!empty($invoice['allowanceCharges'])) {
+                $this->invoiceRepository->createAllowances(
+                    $invoiceId,
+                    $invoice['allowanceCharges']
+                );
+            }            
             $this->invoiceSnapshotRepository->create(
                 $invoiceId,
                 $invoice,
                 $invoiceData
             );
-    
             $this->db->commit();
-    
             return $invoiceId;
-    
         } catch (\Throwable $e) {
-    
             $this->db->rollBack();
-    
             throw $e;
-    
         }
     }
     public function update(
@@ -149,6 +140,7 @@ class InvoicePersistenceService
                 ]
             );
             $this->invoiceLineRepository->deleteByInvoiceId($invoiceId);
+            $this->invoiceRepository->deleteAllowancesByInvoiceId($invoiceId);
             $this->invoiceTotalsRepository->deleteByInvoiceId($invoiceId);
             $this->invoiceTaxTotalsRepository->deleteByInvoiceId($invoiceId);
             $this->invoiceSnapshotRepository->deleteByInvoiceId($invoiceId);            
@@ -164,6 +156,12 @@ class InvoicePersistenceService
                 $invoiceId,
                 $invoice['taxTotal']
             );
+            if (!empty($invoice['allowanceCharges'])) {
+                $this->invoiceRepository->createAllowances(
+                    $invoiceId,
+                    $invoice['allowanceCharges']
+                );
+            }            
             $this->invoiceSnapshotRepository->create(
                 $invoiceId,
                 $invoice,
@@ -175,5 +173,4 @@ class InvoicePersistenceService
             throw $e;
         }
     }
-        
 }

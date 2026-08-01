@@ -59,18 +59,19 @@ $invoiceId = $_GET['id'] ?? null;
             <div class="table-responsive">
                 <table class="table table-bordered">
                     <thead>
-                        <tr>
-                            <th>Item Name</th>
-                            <th>Qty</th>
-                            <th>Price</th>
-                            <th>Discount</th>
-                            <th>Type</th>
-                            <th>VAT %</th>
-                        </tr>
+                    <tr>
+                    <th>Item</th>
+                    <th>Qty</th>
+                    <th>Price</th>
+                    <!-- <th>Allowance</th> -->
+                    <th>VAT %</th>
+                    <th>Actions</th>
+                </tr>
                     </thead>
                     <tbody id="invoiceItems">
                     </tbody>
                 </table>
+              
             </div>
             <button type="button"
                     id="addItem"
@@ -78,6 +79,28 @@ $invoiceId = $_GET['id'] ?? null;
                 <i class="bi bi-plus"></i>
                 Add Item
             </button>
+            <hr>
+            <h5>Invoice Allowances / Charges</h5>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Reason</th>
+                        <th>Mode</th>
+                        <th>Value</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="invoiceAllowanceBody">
+                </tbody>
+            </table>
+            <button
+                type="button"
+                id="addInvoiceAllowance"
+                class="btn btn-outline-primary mb-3">
+                <i class="bi bi-plus"></i>
+                Add Allowance / Charge
+            </button>              
             <div class="d-flex justify-content-between">
                 <a href="?page=invoices" class="btn btn-outline-secondary">
                     <i class="bi bi-arrow-left"></i>
@@ -88,6 +111,7 @@ $invoiceId = $_GET['id'] ?? null;
                     Save for Submission
                 </button>
             </div>
+
         </form>
     </div>
 </div>

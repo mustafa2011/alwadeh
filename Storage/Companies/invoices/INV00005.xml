@@ -15,20 +15,20 @@
     </ext:UBLExtensions>
     <cbc:ProfileID>reporting:1.0</cbc:ProfileID>
     <cbc:ID>INV00005</cbc:ID>
-    <cbc:UUID>dc126bad-831e-4e35-a7af-0f3ec25ff7ca</cbc:UUID>
-    <cbc:IssueDate>2026-07-29</cbc:IssueDate>
-    <cbc:IssueTime>12:25:06Z</cbc:IssueTime>
+    <cbc:UUID>4aecad2d-e33d-4f13-b731-6baf681d2920</cbc:UUID>
+    <cbc:IssueDate>2026-07-30</cbc:IssueDate>
+    <cbc:IssueTime>20:43:05Z</cbc:IssueTime>
     <cbc:InvoiceTypeCode name="0100000">388</cbc:InvoiceTypeCode>
     <cbc:DocumentCurrencyCode>SAR</cbc:DocumentCurrencyCode>
     <cbc:TaxCurrencyCode>SAR</cbc:TaxCurrencyCode>
     <cac:AdditionalDocumentReference>
         <cbc:ID>ICV</cbc:ID>
-        <cbc:UUID>5</cbc:UUID>
+        <cbc:UUID>6</cbc:UUID>
     </cac:AdditionalDocumentReference>
     <cac:AdditionalDocumentReference>
         <cbc:ID>PIH</cbc:ID>
         <cac:Attachment>
-            <cbc:EmbeddedDocumentBinaryObject mimeCode="text/plain">i9VKmVKVWwP6lg8kpbp3l/rygk0GIeICx386ExuJSqU=</cbc:EmbeddedDocumentBinaryObject>
+            <cbc:EmbeddedDocumentBinaryObject mimeCode="text/plain">4t+DSW3HEbdcTTDs9w+yuo90fIhGmkNoZfyzkXzER50=</cbc:EmbeddedDocumentBinaryObject>
         </cac:Attachment>
     </cac:AdditionalDocumentReference>
     <cac:AdditionalDocumentReference>
@@ -88,7 +88,7 @@
         </cac:Party>
     </cac:AccountingCustomerParty>
     <cac:Delivery>
-        <cbc:ActualDeliveryDate>2026-07-30</cbc:ActualDeliveryDate>
+        <cbc:ActualDeliveryDate>2026-07-31</cbc:ActualDeliveryDate>
     </cac:Delivery>
     <cac:PaymentMeans>
         <cbc:PaymentMeansCode>10</cbc:PaymentMeansCode>
@@ -137,7 +137,7 @@
             </cac:ClassifiedTaxCategory>
         </cac:Item>
         <cac:Price>
-            <cbc:PriceAmount currencyID="SAR">1100.00</cbc:PriceAmount>
+            <cbc:PriceAmount currencyID="SAR">1200.00</cbc:PriceAmount>
         </cac:Price>
     </cac:InvoiceLine>
     <cac:InvoiceLine>
@@ -159,7 +159,7 @@
             </cac:ClassifiedTaxCategory>
         </cac:Item>
         <cac:Price>
-            <cbc:PriceAmount currencyID="SAR">225.00</cbc:PriceAmount>
+            <cbc:PriceAmount currencyID="SAR">250.00</cbc:PriceAmount>
         </cac:Price>
     </cac:InvoiceLine>
 </Invoice>

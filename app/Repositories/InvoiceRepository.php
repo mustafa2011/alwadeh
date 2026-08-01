@@ -229,22 +229,31 @@ class InvoiceRepository
 
     public function findItems(int $invoiceId): array
     {
-        $stmt = $this->db->prepare("
+        $stmt=$this->db->prepare("
             SELECT
                 l.*,
                 t.tax_percent,
                 t.tax_amount,
                 (l.line_extension_amount+t.tax_amount) AS payable_amount,
-                ac.amount AS discount_amount,
-                ac.percentage AS discount_percentage,
+                COALESCE(ac.discount_amount,0) AS discount_amount,
+                COALESCE(ac.discount_percentage,0) AS discount_percentage,
                 ac.charge_indicator,
-                ac.reason AS discount_reason
+                ac.discount_reason
             FROM invoice_lines l
             LEFT JOIN invoice_line_taxes t
-                ON t.invoice_line_id = l.id
-            LEFT JOIN invoice_line_allowance_charges ac
-                ON ac.invoice_line_id = l.id
-                AND ac.charge_indicator=0
+                ON t.invoice_line_id=l.id
+            LEFT JOIN (
+                SELECT
+                    invoice_line_id,
+                    SUM(amount) AS discount_amount,
+                    MAX(multiplier_factor) AS discount_percentage,
+                    MAX(charge_indicator) AS charge_indicator,
+                    MAX(reason) AS discount_reason
+                FROM invoice_line_allowance_charges
+                WHERE charge_indicator=0
+                GROUP BY invoice_line_id
+            ) ac
+                ON ac.invoice_line_id=l.id
             WHERE l.invoice_id=?
             ORDER BY l.line_number
         ");
@@ -280,5 +289,79 @@ class InvoiceRepository
         $stmt->execute([$invoiceId]);
     
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }   
+    }  
+    public function createAllowances(
+        int $invoiceId,
+        array $allowances
+    ): void {
+        if (empty($allowances)) {
+            return;
+        }
+        $stmt = $this->db->prepare("
+            INSERT INTO invoice_allowance_charges (
+                invoice_id,
+                charge_indicator,
+                reason_code,
+                reason,
+                amount,
+                base_amount,
+                multiplier_factor,
+                currency_code,
+                tax_category_id,
+                tax_percent,
+                tax_scheme_id
+            ) VALUES (
+                :invoice_id,
+                :charge_indicator,
+                :reason_code,
+                :reason,
+                :amount,
+                :base_amount,
+                :multiplier_factor,
+                :currency_code,
+                :tax_category_id,
+                :tax_percent,
+                :tax_scheme_id
+            )
+        ");
+    
+        foreach ($allowances as $allowance) {
+            $taxCategory = $allowance['taxCategory'][0] ?? [];
+    
+            $stmt->execute([
+                'invoice_id' => $invoiceId,
+                'charge_indicator' => !empty($allowance['chargeIndicator']) ? 1 : 0,
+                'reason_code' => $allowance['reasonCode'] ?? null,
+                'reason' => $allowance['reason'] ?? null,
+                'amount' => $allowance['amount'] ?? 0,
+                'base_amount' => $allowance['baseAmount'] ?? 0,
+                'multiplier_factor' => $allowance['multiplierFactorNumeric'] ?? 0,
+                'currency_code' => 'SAR',
+                'tax_category_id' => $taxCategory['id'] ?? 'S',
+                'tax_percent' => $taxCategory['percent'] ?? 15,
+                'tax_scheme_id' => $taxCategory['taxScheme']['id'] ?? 'VAT'
+            ]);
+        }
+    }
+    public function deleteAllowancesByInvoiceId(int $invoiceId): void
+    {
+        $stmt = $this->db->prepare("
+            DELETE FROM invoice_allowance_charges
+            WHERE invoice_id = ?
+        ");
+        $stmt->execute([$invoiceId]);
+    } 
+    public function nextInvoiceNumber(int $companyId): string
+    {
+        $stmt=$this->db->prepare("
+            SELECT MAX(id) 
+            FROM invoices 
+            WHERE company_id=:company_id
+        ");
+        $stmt->execute([
+            'company_id'=>$companyId
+        ]);
+        $last=(int)$stmt->fetchColumn();
+        return 'INV'.str_pad($last+1,5,'0',STR_PAD_LEFT);
+    }           
 }

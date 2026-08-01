@@ -14,10 +14,10 @@
         </ext:UBLExtension>
     </ext:UBLExtensions>
     <cbc:ProfileID>reporting:1.0</cbc:ProfileID>
-    <cbc:ID>INV00003</cbc:ID>
-    <cbc:UUID>653eeabf-2e42-4b16-83d6-9cc0f77f424a</cbc:UUID>
+    <cbc:ID>INV00006</cbc:ID>
+    <cbc:UUID>170c60f9-a836-4988-be5d-140b1447eb4e</cbc:UUID>
     <cbc:IssueDate>2026-07-30</cbc:IssueDate>
-    <cbc:IssueTime>14:52:40Z</cbc:IssueTime>
+    <cbc:IssueTime>14:54:32Z</cbc:IssueTime>
     <cbc:InvoiceTypeCode name="0100000">388</cbc:InvoiceTypeCode>
     <cbc:DocumentCurrencyCode>SAR</cbc:DocumentCurrencyCode>
     <cbc:TaxCurrencyCode>SAR</cbc:TaxCurrencyCode>

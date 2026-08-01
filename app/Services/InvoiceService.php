@@ -15,10 +15,8 @@ use App\Services\InvoiceSubmissionService;
 use App\Services\InvoiceXmlService;
 use App\Repositories\CompanySettingsRepository;
 use App\Repositories\ItemRepository;
-
 use App\Core\Database;
 use PDO;
-
 class InvoiceService
 {
     private PDO $db;
@@ -37,7 +35,6 @@ class InvoiceService
     private InvoiceXmlService $invoiceXmlService;
     private CompanySettingsRepository $companySettingsRepository;
     private ItemRepository $itemRepository;
-
     public function __construct() {
         $this->db = Database::getConnection();
         $this->invoiceValidator = new InvoiceValidator();
@@ -57,7 +54,6 @@ class InvoiceService
         $this->customerRepository = new CustomerRepository();
         $this->itemRepository = new ItemRepository();
     }
-
     public function createInvoice(array $invoiceData): array
     {
         return $this->issueInvoice(
@@ -65,17 +61,12 @@ class InvoiceService
             $invoiceData['submit'] ?? true
         );
     }
-    
     public function issueInvoice(array $invoiceData, bool $submit = true): array  {
-
         $getSettings = $this->companySettingsRepository->loadSettings();
         $company = $this->storageRepository->loadCurrentCompany();
-
         $this->invoiceValidator->validateGenerationRequirements( $company, $getSettings);
         $type = $this->invoiceValidator->getInvoiceType($invoiceData);
-
         $chain = $this->invoiceChainService->next($company['id']);        
-
         if ($type === 'standard') {
             $invoiceData['customer'] = $this->customerRepository->findForInvoice(
                 $invoiceData['customerId']
@@ -91,21 +82,19 @@ class InvoiceService
             $chain,
             $invoiceData
         );    
-       
         if (!empty($invoiceData['items'])) {
-            $totals = $this->invoiceCalculationService->calculate($invoiceData['items']);
+            $totals = $this->invoiceCalculationService->calculate(
+                $invoiceData['items'],
+                $invoiceData['allowanceCharges'] ?? []
+            );
             $invoice = $this->invoiceBuilder->build($invoice, $totals);
         }        
-
         $package = $this->invoiceXmlService->buildPackage(
             $invoice,
             $this->storageRepository->getInvoicesDirectory()
         );
-
         $api = $this->invoiceChainService->api();
-
         $submitResult = null;
-
         if ($submit) {
             $api = $this->invoiceChainService->api();
             $submitResult = $this->invoiceSubmissionService->submit(
@@ -118,7 +107,6 @@ class InvoiceService
                 'status' => 'draft'
             ];
         }
-        
         $isSimplified = ($type === 'simplified');
         if (
             $submit &&
@@ -132,9 +120,7 @@ class InvoiceService
                 . '_zatca.xml',
                 $submitResult['cleared_xml']
             );        }
-
         if ($submitResult['success']) {
-
             $this->invoicePersistenceService->save(
                 $invoice,
                 $package,
@@ -143,7 +129,6 @@ class InvoiceService
                 $submitResult,
                 $invoiceData
             );
-        
         }    
         $resultSaved = [
             'invoice_kind' => $invoice['invoiceType']['invoice'] ?? null,
@@ -178,7 +163,6 @@ class InvoiceService
             ]
         ];
     }
-       
     public function processInvoice(array $invoiceData): array {
         return $this->issueInvoice($invoiceData);
     }
@@ -200,32 +184,6 @@ class InvoiceService
                 'id' => 'S',
                 'percent' => (float)($itemData['tax_percent'] ?? 15)
             ];
-            if (!empty($item['discount']['value'])) {
-                $unitPrice = (float)($item['unitPrice'] ?? 0);
-                if ($item['discount']['type'] === 'percent') {
-                    $item['price']['allowanceCharges'] = [
-                        [
-                            'isCharge' => false,
-                            'reason' => 'Discount',
-                            'amount' => ($unitPrice * $item['discount']['value'] / 100),
-                            'baseAmount' => $unitPrice,
-                            'percentage' => (float)$item['discount']['value'],
-                            'taxCategory' => $item['taxCategory']
-                        ]
-                    ];
-                } else {
-                    $item['price']['allowanceCharges'] = [
-                        [
-                            'isCharge' => false,
-                            'reason' => 'Discount',
-                            'amount' => (float)$item['discount']['value'],
-                            'baseAmount' => $unitPrice,
-                            'percentage' => 0,
-                            'taxCategory' => $item['taxCategory']
-                        ]
-                    ];
-                }
-            }
         }
         return $items;
     } 
@@ -255,7 +213,10 @@ class InvoiceService
         );
         $invoice['uuid']=$oldInvoice['invoice_uuid'];
         $invoice['id']=$oldInvoice['invoice_number'];
-        $totals=$this->invoiceCalculationService->calculate($invoiceData['items']);
+        $totals = $this->invoiceCalculationService->calculate(
+            $invoiceData['items'],
+            $invoiceData['allowanceCharges'] ?? []
+        );        
         $invoice=$this->invoiceBuilder->build($invoice,$totals);
         $package=$this->invoiceXmlService->buildPackage(
             $invoice,
