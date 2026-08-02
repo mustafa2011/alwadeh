@@ -1,5 +1,9 @@
 let itemsCache = [];
 let invoiceAllowances = [];
+let allowanceReasons = {
+    allowances: [],
+    charges: []
+};
 let customerBox;
 let invoiceKind;
 document.addEventListener(
@@ -30,6 +34,7 @@ document.addEventListener(
         invoiceKind.addEventListener("change",toggleCustomer);
         toggleCustomer();
         loadItems();
+        loadAllowanceReasons();
         if(typeof invoiceId !== "undefined" && invoiceId){
             loadInvoice(invoiceId);
         }            
@@ -352,8 +357,7 @@ function addInvoiceAllowanceRow(data = {}) {
                 </select>
             </td>
             <td>
-                <input type="text"
-                    class="form-control ac-reason">
+                <select class="form-select ac-reason"></select>
             </td>
             <td>
                 <select class="form-select ac-mode">
@@ -377,10 +381,22 @@ function addInvoiceAllowanceRow(data = {}) {
         `
     );
     const row = body.lastElementChild;
+    fillAllowanceReasons(row);
     row.querySelector(".ac-type").value =
         data.chargeIndicator ? "1" : "0";
-    row.querySelector(".ac-reason").value =
-        data.reason ?? "";
+    row.querySelector(".ac-type")
+    .addEventListener(
+        "change",
+        function(){
+            fillAllowanceReasons(row);
+        }
+    );    
+    if(data.reasonCode){
+        row.querySelector(".ac-reason").value=data.reasonCode;
+    }
+    else{
+        fillAllowanceReasons(row);
+    }
     row.querySelector(".ac-mode").value =
         data.mode ?? "amount";
     row.querySelector(".ac-value").value =
@@ -406,13 +422,40 @@ function collectInvoiceAllowances(){
         data.push({
             chargeIndicator:
                 row.querySelector(".ac-type").value==="1",
-            reasonCode:"95",
+            reasonCode:
+                row.querySelector(".ac-reason").value,
             reason:
-                row.querySelector(".ac-reason").value||"Allowance",
+                row.querySelector(".ac-reason")
+                    .selectedOptions[0]
+                    ?.text ?? "",                            
             mode:
                 row.querySelector(".ac-mode").value,
             value:value
         });
     });
     return data;
+}
+function loadAllowanceReasons(){
+    fetch(window.APP.baseUrl+"/api/settings/allowance_reasons.php")
+    .then(response=>response.json())
+    .then(result=>{
+        if(!result.success){
+            return;
+        }
+        allowanceReasons=result.data;
+    });
+}
+function fillAllowanceReasons(row){
+    const select=row.querySelector(".ac-reason");
+    const isCharge=row.querySelector(".ac-type").value==="1";
+    const list=isCharge
+        ? allowanceReasons.charges
+        : allowanceReasons.allowances;
+    select.innerHTML="";
+    list.forEach(function(reason){
+        select.innerHTML+=`
+        <option value="${reason.code}">
+            ${reason.name_en}
+        </option>`;
+    });
 }

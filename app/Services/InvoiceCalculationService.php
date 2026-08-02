@@ -5,19 +5,14 @@ class InvoiceCalculationService
     public function calculate(
         array $items,
         array $documentAllowances = []
-    ): array {        
+    ): array {
         $invoiceLines = [];
         $taxGroups = [];
         $lineExtensionTotal = 0;
-        $taxTotalAmount = 0;
-        $documentAllowanceTotal = $this->calculateDocumentAllowanceTotal(
-            $documentAllowances
-        );               
         foreach ($items as $index => $item) {
             $line = $this->buildInvoiceLine($index, $item);
             $invoiceLines[] = $line;
             $lineExtensionTotal += $line['lineExtensionAmount'];
-            $taxTotalAmount += $line['taxTotal']['taxAmount'];
             $this->groupTax(
                 $taxGroups,
                 $line['taxCategory'],
@@ -25,28 +20,46 @@ class InvoiceCalculationService
                 $line['taxTotal']['taxAmount']
             );
         }
-        $taxTotalAmount=0;
-        foreach($taxGroups as &$group){
-            $taxRate=(float)($group['taxCategory']['percent']??0);
-            $group['taxableAmount']=round(
-                $group['taxableAmount']-($documentAllowanceTotal*($group['taxableAmount']/$lineExtensionTotal)),
-                2
-            );
-            $group['taxAmount']=round(
-                $group['taxableAmount']*$taxRate/100,
-                2
-            );
-            $taxTotalAmount+=$group['taxAmount'];
+        foreach ($documentAllowances as &$allowance) {
+            if (($allowance['mode'] ?? 'amount') === 'percent') {
+                $allowance['baseAmount'] = $lineExtensionTotal;
+            }
         }
-        unset($group);
-        $legalMonetaryTotal = $this->buildLegalMonetaryTotal(
-                $lineExtensionTotal,
-                $taxTotalAmount,
-                $documentAllowanceTotal
+        unset($allowance);
+        $documentAllowanceTotal = $this->calculateDocumentAllowanceTotal(
+            $documentAllowances
+        );
+        $documentChargeTotal = $this->calculateDocumentChargeTotal(
+            $documentAllowances
+        );
+        $taxTotalAmount = 0;
+        foreach ($taxGroups as &$group) {
+            $taxRate = (float)($group['taxCategory']['percent'] ?? 0);
+            $ratio = $group['taxableAmount'] / $lineExtensionTotal;
+            $allowanceAmount = $documentAllowanceTotal * $ratio;
+            $chargeAmount = $documentChargeTotal * $ratio;
+            $group['taxableAmount'] = round(
+                $group['taxableAmount'] - $allowanceAmount + $chargeAmount,
+                2
             );
-        $buildAllowanceCharges = $this->buildAllowanceCharges($documentAllowances);
+            $group['taxAmount'] = round(
+                $group['taxableAmount'] * $taxRate / 100,
+                2
+            );
+            $taxTotalAmount += $group['taxAmount'];
+        }        
+        unset($group);       
+        $legalMonetaryTotal = $this->buildLegalMonetaryTotal(
+            $lineExtensionTotal,
+            $taxTotalAmount,
+            $documentAllowanceTotal,
+            $documentChargeTotal
+        );                
+        $buildAllowanceCharges = $this->buildAllowanceCharges(
+            $documentAllowances
+        );      
         return [
-            'invoiceLines'=>$invoiceLines,
+            'invoiceLines' => $invoiceLines,
             'taxTotal' => $this->buildTaxTotal(
                 $taxGroups,
                 $taxTotalAmount
@@ -102,17 +115,19 @@ class InvoiceCalculationService
     private function buildLegalMonetaryTotal(
         float $lineExtension,
         float $tax,
-        float $allowance
+        float $allowance,
+        float $charge
     ): array {
-        $taxExclusive = $lineExtension - $allowance;
-        $taxInclusive = $taxExclusive + $tax;
+        $taxExclusive = $lineExtension - $allowance + $charge;
+        $taxInclusive = $taxExclusive + $tax;       
         return [
             'lineExtensionAmount' => round($lineExtension, 2),
             'taxExclusiveAmount' => round($taxExclusive, 2),
             'taxInclusiveAmount' => round($taxInclusive, 2),
             'prepaidAmount' => 0,
             'payableAmount' => round($taxInclusive, 2),
-            'allowanceTotalAmount' => round($allowance, 2)
+            'allowanceTotalAmount' => round($allowance, 2),
+            'chargeTotalAmount' => round($charge, 2)
         ];
     }    
     private function buildInvoiceLine(
@@ -212,21 +227,46 @@ class InvoiceCalculationService
     }
     private function calculateDocumentAllowanceTotal(
         array $allowances
-    ): float
-    {
+    ): float {
         $total = 0;
+    
         foreach ($allowances as $allowance) {
             $amount = (float)($allowance['value'] ?? 0);
+    
             if (($allowance['mode'] ?? 'amount') === 'percent') {
                 $baseAmount = (float)($allowance['baseAmount'] ?? 0);
                 $amount = round($baseAmount * $amount / 100, 2);
             }
+    
             if (!($allowance['chargeIndicator'] ?? false)) {
                 $total += $amount;
             }
         }
+    
         return round($total, 2);
-    }    
+    } 
+    private function calculateDocumentChargeTotal(
+        array $charges
+    ): float {
+        $total = 0;
+    
+        foreach ($charges as $charge) {
+            if (($charge['chargeIndicator'] ?? false) !== true) {
+                continue;
+            }
+    
+            $amount = (float)($charge['value'] ?? 0);
+    
+            if (($charge['mode'] ?? 'amount') === 'percent') {
+                $baseAmount = (float)($charge['baseAmount'] ?? 0);
+                $amount = round($baseAmount * $amount / 100, 2);
+            }
+    
+            $total += $amount;
+        }
+    
+        return round($total, 2);
+    }        
     private function buildAllowanceCharges(
         array $allowances
     ): array {

@@ -184,6 +184,32 @@ class InvoiceService
                 'id' => 'S',
                 'percent' => (float)($itemData['tax_percent'] ?? 15)
             ];
+            if (!empty($item['discount']['value'])) {
+                $unitPrice = (float)($item['unitPrice'] ?? 0);
+                if ($item['discount']['type'] === 'percent') {
+                    $item['price']['allowanceCharges'] = [
+                        [
+                            'isCharge' => false,
+                            'reason' => 'Discount',
+                            'amount' => ($unitPrice * $item['discount']['value'] / 100),
+                            'baseAmount' => $unitPrice,
+                            'percentage' => (float)$item['discount']['value'],
+                            'taxCategory' => $item['taxCategory']
+                        ]
+                    ];
+                } else {
+                    $item['price']['allowanceCharges'] = [
+                        [
+                            'isCharge' => false,
+                            'reason' => 'Discount',
+                            'amount' => (float)$item['discount']['value'],
+                            'baseAmount' => $unitPrice,
+                            'percentage' => 0,
+                            'taxCategory' => $item['taxCategory']
+                        ]
+                    ];
+                }
+            }
         }
         return $items;
     } 
@@ -217,7 +243,7 @@ class InvoiceService
             $invoiceData['items'],
             $invoiceData['allowanceCharges'] ?? []
         );        
-        $invoice=$this->invoiceBuilder->build($invoice,$totals);
+        $invoice=$this->invoiceBuilder->build($invoice,$totals);       
         $package=$this->invoiceXmlService->buildPackage(
             $invoice,
             $this->storageRepository->getInvoicesDirectory()

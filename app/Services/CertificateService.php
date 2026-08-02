@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Services;
 use Saleh7\Zatca\CertificateBuilder;
 use Saleh7\Zatca\ZatcaAPI;
@@ -18,7 +17,6 @@ class CertificateService
     protected ComplianceService $complianceService;
     protected CertificateValidator $certificateValidator;
     protected array $company = [];
-
     public function __construct()
     {
         $this->settingsRepository = new CompanySettingsRepository();
@@ -30,7 +28,6 @@ class CertificateService
         $this->complianceService = new ComplianceService();
         $this->certificateValidator = new CertificateValidator();
     } 
-
     /**
      * Generate CSR and Private Key.
      * @param array $data
@@ -39,7 +36,6 @@ class CertificateService
     public function generateCSR(array $data): array
     {
         $this->certificateValidator->validateCSR($data);
-    
         $this->company = $this->storageRepository->initializeCompany([
             'crn'          => $data['crn'] ?? '',
             'vat'          => $data['organization_identifier'] ?? '',
@@ -47,22 +43,14 @@ class CertificateService
             'branch_name'  => $data['organizational_unit_name'] ?? '',
             'environment'  => $data['environment'] ?? 'nonprod'
         ]);
-        
         $this->storageRepository->syncCertificateCompanyData((int)$this->company['id'], $data);
-        
         $environment = $data['environment'] ?? 'nonprod';
-    
         $uuid = generateUUID();
-    
         $commonName = $this->settingsRepository->getCommonNameByEnvironment();
-   
         $this->storageRepository->backupCertificateFiles();
-    
         $this->storageRepository->buildCertificate($data, $uuid, $commonName);
-
         $csrPath = $this->storageRepository->csrPath($this->company['crn']);
         $keyPath = $this->storageRepository->privateKeyPath($this->company['crn']);
-    
         $settings = [
             'company_id'         => (int) $this->company['id'],
             'environment'        => $environment,
@@ -71,16 +59,13 @@ class CertificateService
             'organization_name'  => $this->company['registration_name'] ?? '',
             'branch_name'        => $data['organizational_unit_name'],
             'address'            => $data['address'],
-        
             'street'             => $this->company['address']['street_name'] ?? '',
             'building_number'    => $this->company['address']['building_number'] ?? '',
             'subdivision'        => $this->company['address']['city_subdivision_name'] ?? '',
             'city'               => $this->company['address']['city_name'] ?? '',
             'postal_zone'        => $this->company['address']['postal_zone'] ?? '',
-        
             'business_category'  => $data['business_category'],
             'invoice_type'       => $data['invoice_type'],
-        
             'common_name'        => $commonName,
             'serial_1'           => $data['serial_1'],
             'serial_2'           => $data['serial_2'],
@@ -91,21 +76,16 @@ class CertificateService
             'private_key_content' => $this->storageRepository->loadPK($this->company['crn']),
             'status'             => 'generated',            
             'generated_at'       => date('Y-m-d H:i:s'),
-        
             'certificate_path'   => $csrPath,
             'private_key_path'   => $keyPath
         ];
-
         $this->settingsRepository->save($settings);    
         $this->storageRepository->updateCompanyStatus(COMPANY_STATUS_CSR);
-
-        
         return [
             'success' => true,
             'message' => 'Certificate generated successfully.'
         ];
     }
-
     /**
      * Request compliance certificate from ZATCA.
      * @param string $otp
@@ -114,45 +94,32 @@ class CertificateService
     public function requestComplianceCertificate(string $otp): array
     {
         $this->company = $this->storageRepository->loadCurrentCompany();
-
         $csrPath = $this->storageRepository->csrPath($this->company['crn']);
-
         $environment = $this->settingsRepository->getApiEnvironment();
-    
         $api = $this->complianceService->createComplianceApi($environment);
-    
         $csr = $api->loadCSRFromFile($csrPath);
-    
         $result = $api->requestComplianceCertificate($csr, trim($otp));
-    
         $this->settingsRepository->updateCompliance(
             (int)$this->company['id'],
             $result->getRequestId(),
             $result->getCertificate(),
             $result->getSecret()
         );
-  
         $this->certificateStorageRepository->updateCertificateValidity(
             (int)$this->company['id'],
             $result->getCertificate()
         );
-        
         $this->storageRepository->backupCertificateFiles(false, false);
-        
         $privateKey = $this->storageRepository->loadPK($this->company['crn']);
-        
         $this->certificateStorageRepository->saveComplianceCertificate(
             $result,
             $csr,
             $privateKey
         );
-    
         $this->storageRepository->updateCompanyStatus(COMPANY_STATUS_COMPLIANCE);
-    
         $this->storageRepository->updateCurrentCompany([
             'last_request_id' => $result->getRequestId()
         ]);
-
         return [
             'success' => true,
             'message' => 'Compliance certificate requested successfully.',
@@ -161,39 +128,24 @@ class CertificateService
             ]
         ];
     }
-
     /**
      * Compliance check
      */
     public function runComplianceCheck(): array
     {
-
         $credentials = $this->certificateStorageRepository->loadComplianceCredentials();
-       
         $environment = $this->settingsRepository->getApiEnvironment();
-        
         $supplier = $this->companyService->buildSupplier();
-        
         $privateKey = $this->certificateStorageRepository->loadPrivateKey();
-        
         $outputDirectory = getComplianceOutputDirectory();
-    
         $api = $this->complianceService->createComplianceApi($environment);
-    
         $testInvoices = (new \App\Services\ComplianceService())->getComplianceInvoices($supplier);
-    
         $results = [];
-        
         $icv = 0;
-    
         foreach ($testInvoices as $test) {
-    
             $icv++;
-    
             $invoice = $test['data'];
-    
             $invoice['additionalDocuments'][0]['uuid'] = (string) $icv;
-    
             $result = $this->complianceService->processComplianceInvoice(
                 $api,
                 $invoice,
@@ -202,18 +154,13 @@ class CertificateService
                 $outputDirectory,
                 $icv
             );
-    
             $results[] = $result;
-    
         }
-        
         $production = $this->complianceService->requestProductionCertificate(
             $api,
             $credentials
         );
-
         $this->storageRepository->updateCompanyStatus(COMPANY_STATUS_PRODUCTION, true);
-        
         return [
             'success' => true,
             'message' => 'Compliance completed successfully.',
@@ -222,9 +169,7 @@ class CertificateService
                 'invoices' => $results
             ]
         ];
-    
     }
-
     /**
      * Generate Renewal CSR.
      *
@@ -233,19 +178,12 @@ class CertificateService
     public function generateRenewCSR(): array
     {
         $this->company = $this->storageRepository->loadCurrentCompany();
-
         $csrPath = $this->storageRepository->csrPath($this->company['crn']);
-
         $settings = $this->storageRepository->getCompanyZatcaSettings();
-    
         $this->storageRepository->backupCertificateFiles();
-    
         $uuid = generateUUID();
-    
         $commonName = $this->settingsRepository->getCommonNameByEnvironment();
-                
         $keyPath = $this->storageRepository->privateKeyPath($this->company['crn']);
-    
         (new CertificateBuilder())
             ->setOrganizationIdentifier($settings['vat_number'])
             ->setSerialNumber(
@@ -265,19 +203,15 @@ class CertificateService
                 $csrPath,
                 $keyPath
             );
-    
         $settings['generated_uuid'] = $uuid;
         $settings['generated_at'] = date('Y-m-d H:i:s');
         $settings['status'] = 'generated';
-    
         $this->certificateStorageRepository->saveCertificateSettings($settings);
-    
         return [
             'success' => true,
             'message' => 'Renewal CSR generated successfully.'
         ];
     }
-
     /**
      * Renew Production Certificate.
      * @param string $otp
@@ -286,33 +220,23 @@ class CertificateService
     public function renewProductionCertificate(string $otp): array
     {
         $this->company = $this->storageRepository->loadCurrentCompany();
-        
         $crn = $this->company['crn'];
-            
         $credentials = $this->certificateStorageRepository->loadProductionCredentials();
-    
         $csr = $this->storageRepository->loadCSR($this->company['crn']);
-
-    
         $api = new ZatcaAPI($this->settingsRepository->getApiEnvironment());
-    
         $result = $api->renewProductionCertificate(
             $credentials['certificate'],
             $credentials['secret'],
             $csr,
             trim($otp)
         );
-    
         $this->storageRepository->backupCertificateFiles(false, false);
-    
         $this->certificateStorageRepository->saveProductionCredentials($result);
         $this->settingsRepository->save($this->settingsRepository->loadSettings());
-    
         $this->certificateStorageRepository->updateCertificateValidity(
             (int)$this->company['id'],
             $result->getCertificate()
         );
-    
         return [
             'success' => true,
             'message' => 'Production certificate renewed successfully.',
@@ -321,5 +245,4 @@ class CertificateService
             ]
         ];
     }
-    
 }

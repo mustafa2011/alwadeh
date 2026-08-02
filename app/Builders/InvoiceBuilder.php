@@ -247,7 +247,7 @@ class InvoiceBuilder
         }
         if (isset($options['invoice_type'])) {
             $invoice['invoice_type'] = $options['invoice_type'];
-        }
+        }       
         if (!empty($options['allowanceCharges'])) {
             $invoice['allowanceCharges'] = $options['allowanceCharges'];
         }        

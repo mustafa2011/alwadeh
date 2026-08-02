@@ -53,7 +53,13 @@ class InvoiceXmlService
         array $invoiceData,
         string $outputDirectory
     ): string {
-        $invoice = (new InvoiceMapper())->mapToInvoice($invoiceData);
+        if (!empty($invoiceData['allowanceCharges'])) {
+            foreach ($invoiceData['allowanceCharges'] as &$charge) {
+                $charge['isCharge'] = $charge['chargeIndicator'] ?? false;
+            }
+            unset($charge);
+        }        
+        $invoice = (new InvoiceMapper())->mapToInvoice($invoiceData);                
         GeneratorInvoice::invoice($invoice)
             ->saveXMLFile(
                 $invoiceData['id'] . '.xml',

@@ -63,7 +63,6 @@ $invoiceId = $_GET['id'] ?? null;
                     <th>Item</th>
                     <th>Qty</th>
                     <th>Price</th>
-                    <!-- <th>Allowance</th> -->
                     <th>VAT %</th>
                     <th>Actions</th>
                 </tr>

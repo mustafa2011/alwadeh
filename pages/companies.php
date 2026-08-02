@@ -69,14 +69,14 @@ require_once __DIR__ . '/../includes/api_bootstrap.php';
                                 <th>VAT</th>
 
                                 <th>Environment</th>
-
+<!-- 
                                 <th>CSR</th>
 
                                 <th>Compliance</th>
 
                                 <th>Production</th>
-
-                                <th>Current</th>
+ -->
+                                <th>Status</th>
 
                                 <th width="220">
                                     Actions

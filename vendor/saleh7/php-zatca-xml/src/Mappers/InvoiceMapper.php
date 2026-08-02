@@ -253,10 +253,17 @@ class InvoiceMapper
             
             // Create the AllowanceCharge object with its tax categories.
             $allowanceCharges[] = (new \Saleh7\Zatca\AllowanceCharge())
-                ->setChargeIndicator($allowanceCharge['isCharge'] ?? false)
-                ->setAllowanceChargeReason($allowanceCharge['reason'] ?? 'discount')
-                ->setAmount($allowanceCharge['amount'] ?? 0.00)
-                ->setTaxCategory($taxCategories);
+            ->setChargeIndicator($allowanceCharge['chargeIndicator'] ?? $allowanceCharge['isCharge'] ?? false)
+            ->setAllowanceChargeReasonCode($allowanceCharge['reasonCode'] ?? null)
+            ->setAllowanceChargeReason($allowanceCharge['reason'] ?? 'discount')
+            ->setMultiplierFactorNumeric(
+                isset($allowanceCharge['multiplierFactorNumeric'])
+                    ? (int)$allowanceCharge['multiplierFactorNumeric']
+                    : null
+            )
+            ->setAmount($allowanceCharge['amount'] ?? 0.00)
+            ->setBaseAmount($allowanceCharge['baseAmount'] ?? null)
+            ->setTaxCategory($taxCategories);
         }
         
         return $allowanceCharges;
@@ -334,7 +341,8 @@ class InvoiceMapper
             ->setTaxInclusiveAmount($data['taxInclusiveAmount'] ?? 0)
             ->setPrepaidAmount($data['prepaidAmount'] ?? 0)
             ->setPayableAmount($data['payableAmount'] ?? 0)
-            ->setAllowanceTotalAmount($data['allowanceTotalAmount'] ?? 0);
+            ->setAllowanceTotalAmount($data['allowanceTotalAmount'] ?? 0)
+            ->setChargeTotalAmount($data['chargeTotalAmount'] ?? 0);
     }
 
     /**

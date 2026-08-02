@@ -326,7 +326,7 @@ class InvoiceRepository
         ");
     
         foreach ($allowances as $allowance) {
-            $taxCategory = $allowance['taxCategory'][0] ?? [];
+            $taxCategory = $allowance['taxCategories'][0] ?? [];
     
             $stmt->execute([
                 'invoice_id' => $invoiceId,
@@ -363,5 +363,39 @@ class InvoiceRepository
         ]);
         $last=(int)$stmt->fetchColumn();
         return 'INV'.str_pad($last+1,5,'0',STR_PAD_LEFT);
-    }           
+    }   
+    public function findAllowanceCharges(int $invoiceId): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT *
+            FROM invoice_allowance_charges
+            WHERE invoice_id = :invoice_id
+            ORDER BY id
+        ");
+        $stmt->execute([
+            'invoice_id' => $invoiceId
+        ]);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }  
+    public function findAllowances(int $invoiceId): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT
+                charge_indicator,
+                reason_code,
+                reason,
+                amount,
+                base_amount,
+                multiplier_factor,
+                currency_code,
+                tax_category_id,
+                tax_percent,
+                tax_scheme_id
+            FROM invoice_allowance_charges
+            WHERE invoice_id = ?
+            ORDER BY id
+        ");
+        $stmt->execute([$invoiceId]);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }              
 }

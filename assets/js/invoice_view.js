@@ -222,6 +222,51 @@ function renderInvoice(invoice) {
         </div>
     </div>
     `; 
+ 
+    if(invoice.allowance_charges && invoice.allowance_charges.length){
+        html+=`
+        <div class="card shadow-sm mb-4">
+            <div class="card-header fw-bold">
+                Allowances / Charges
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Type</th>
+                                <th>Reason</th>
+                                <th>Mode</th>
+                                <th class="text-end">Value</th>
+                                <th class="text-end">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+        `;
+        invoice.allowance_charges.forEach(row=>{
+            const isCharge = Number(row.charge_indicator) === 1;
+            html+=`
+                <tr>
+                    <td>${isCharge ? 'Charge' : 'Allowance'}</td>
+                    <td>${row.reason ?? '-'}</td>
+                    <td>${row.multiplier_factor ? 'Percent' : 'Amount'}</td>
+                    <td class="text-end">
+                        ${row.multiplier_factor ? Number(row.multiplier_factor).toFixed(2)+'%' : '-'}
+                    </td>
+                    <td class="text-end ${isCharge ? 'text-success':'text-danger'}">
+                        ${isCharge ? '+' : '-'}${Number(row.amount ?? 0).toFixed(2)}
+                    </td>
+                </tr>
+            `;
+        });
+        html+=`
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        `;
+    }       
     const taxAmount=(invoice.tax_totals||[]).reduce(
         (sum,row)=>sum+Number(row.tax_amount||0),
         0
@@ -240,14 +285,20 @@ function renderInvoice(invoice) {
                                 <th>Line Extension Amount</th>
                                 <td class="text-end">${Number(invoice.totals.line_extension_amount??0).toFixed(2)}</td>
                             </tr>
-
-                            <tr>
-                                <th>Document Discount</th>
-                                <td class="text-end text-danger">
-                                    -${Number(invoice.totals.allowance_total_amount??0).toFixed(2)}
-                                </td>
-                            </tr>
-
+                            ${Number(invoice.totals.allowance_total_amount??0) > 0 ? `
+                                <tr>
+                                    <th>Allowances</th>
+                                    <td class="text-end text-danger">
+                                        -${Number(invoice.totals.allowance_total_amount).toFixed(2)}
+                                    </td>
+                                </tr>` : ''}
+                                ${Number(invoice.totals.charge_total_amount??0) > 0 ? `
+                                <tr>
+                                    <th>Charges</th>
+                                    <td class="text-end text-success">
+                                        +${Number(invoice.totals.charge_total_amount).toFixed(2)}
+                                    </td>
+                                </tr>` : ''}
                             <tr>
                                 <th>Tax Exclusive Amount</th>
                                 <td class="text-end">${Number(invoice.totals.tax_exclusive_amount??0).toFixed(2)}</td>

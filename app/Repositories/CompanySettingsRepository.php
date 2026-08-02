@@ -173,14 +173,16 @@ class CompanySettingsRepository
 
     public function getEnvironment(): string
     {
-        $settings = $this->loadSettings();
-    
-        if (empty($settings['environment'])) {
-            throw new Exception(
-                'Environment not found in certificate settings.'
-            );
-        }
-    
+        $company = $this->storage->loadCurrentCompany();
+        $stmt = $this->db->prepare("
+            SELECT environment
+            FROM companies
+            WHERE id = ?
+            LIMIT 1
+        ");
+
+        $stmt->execute([ $company['id']]);
+        $settings = $stmt->fetch(PDO::FETCH_ASSOC) ?: '';
         return $settings['environment'];
     }
 

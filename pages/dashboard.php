@@ -106,9 +106,7 @@
 
     </div>
 
-
-    <!-- CSR Status -->
-
+<!-- 
     <div class="col-md-6 col-xl-3">
 
         <div class="card page-card dashboard-card shadow-sm h-100">
@@ -132,9 +130,6 @@
         </div>
 
     </div>
-
-    <!-- Compliance Status -->
-
     <div class="col-md-6 col-xl-3">
 
         <div class="card page-card dashboard-card shadow-sm h-100">
@@ -158,9 +153,6 @@
         </div>
 
     </div>
-
-    <!-- Production Certificate -->
-
     <div class="col-md-6 col-xl-3">
 
         <div class="card page-card dashboard-card shadow-sm h-100">
@@ -184,7 +176,7 @@
         </div>
 
     </div>
-
+ -->
 </div>
 
 
