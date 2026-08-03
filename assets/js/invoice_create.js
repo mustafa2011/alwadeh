@@ -124,6 +124,8 @@ document.addEventListener(
                             );
                         items.push({
                             itemId:itemId,
+                            item_id:itemId,
+                            itemName:row.querySelector(".item-select").selectedOptions[0].text,
                             quantity:qty,
                             unitPrice:price,
                             unitCode:"PCE",
@@ -143,8 +145,8 @@ document.addEventListener(
                     let invoiceData = {
                         invoiceNumber:document.getElementById("invoiceNumber").value,
                         invoiceType:{
-                            invoice:invoiceType,
-                            type:"invoice"
+                            invoiceKind:invoiceType,
+                            invoiceType:"invoice"
                         },
                         customerId:document.getElementById("customerSelect").value||null,
                         items:items
@@ -170,8 +172,6 @@ function createInvoice(data, submit = true){
         data.invoiceId=invoiceId;
         url=window.APP.baseUrl+"/api/invoices/update.php";
     }
-    console.log("invoiceId:",typeof invoiceId!=="undefined"?invoiceId:null);
-    console.log("url:",url);
     fetch(url,{
         method:"POST",
         headers:{
@@ -257,43 +257,15 @@ function itemChanged(select){
     row.querySelector(".item-tax").value =
         item.tax_percent;
 }
-function loadInvoice(id){
-    fetch(window.APP.baseUrl+"/api/invoices/view.php?mode=edit&id="+id)
-    .then(response=>response.json())
-    .then(result=>{
-        if(!result.success){
-            return;
-        }
-        const invoice=result.data;
-        document.getElementById("invoiceNumber").value=invoice.invoice_number;
-        document.getElementById("invoiceKind").value=invoice.invoice_kind;
-        if(invoice.invoice_kind==="standard"){
-            customerBox.style.display="block";
-            loadCustomers().then(()=>{
-                customerSelect.value=invoice.customer_id;
-            });
-        }        
-        const tbody=document.getElementById("invoiceItems");
-        tbody.innerHTML="";
-        invoice.items.forEach(item=>{
-            addInvoiceRow(item);
-        });
-    });
-}
 function addInvoiceRow(item){
     let tbody=document.getElementById("invoiceItems");
-    const isPercent=Number(item.discount_percentage)>0;
-    const discountValue=isPercent
-        ? item.discount_percentage
-        : (item.discount_amount ?? 0);
-
     tbody.insertAdjacentHTML(
         "beforeend",
         `
         <tr>
             <td>
                 <select class="form-select item-select">
-                    <option value="${item.item_id}">${item.item_name}</option>
+                    <option value="${item.item_id ?? item.id}">${item.item_name}</option>
                 </select>
             </td>
             <td>
@@ -305,21 +277,6 @@ function addInvoiceRow(item){
                 <input type="number"
                     class="form-control item-price"
                     value="${item.unit_price}">
-            </td>
-            <td>
-                <input type="number"
-                    class="form-control item-discount"
-                    value="${discountValue}">
-            </td>
-            <td>
-                <select class="form-select item-discount-type">
-                    <option value="amount" ${isPercent?"":"selected"}>
-                        Amount
-                    </option>
-                    <option value="percent" ${isPercent?"selected":""}>
-                        Percent
-                    </option>
-                </select>
             </td>
             <td>
                 <input type="number"
@@ -343,71 +300,6 @@ function addInvoiceRow(item){
             row.remove();
         }
     );
-}
-function addInvoiceAllowanceRow(data = {}) {
-    const body = document.getElementById("invoiceAllowanceBody");
-    body.insertAdjacentHTML(
-        "beforeend",
-        `
-        <tr>
-            <td>
-                <select class="form-select ac-type">
-                    <option value="0">Allowance</option>
-                    <option value="1">Charge</option>
-                </select>
-            </td>
-            <td>
-                <select class="form-select ac-reason"></select>
-            </td>
-            <td>
-                <select class="form-select ac-mode">
-                    <option value="amount">Amount</option>
-                    <option value="percent">Percent</option>
-                </select>
-            </td>
-            <td>
-                <input type="number"
-                    class="form-control ac-value"
-                    step="0.01"
-                    value="0">
-            </td>
-            <td>
-                <button type="button"
-                    class="btn btn-danger btn-sm remove-ac">
-                    <i class="bi bi-trash"></i>
-                </button>
-            </td>
-        </tr>
-        `
-    );
-    const row = body.lastElementChild;
-    fillAllowanceReasons(row);
-    row.querySelector(".ac-type").value =
-        data.chargeIndicator ? "1" : "0";
-    row.querySelector(".ac-type")
-    .addEventListener(
-        "change",
-        function(){
-            fillAllowanceReasons(row);
-        }
-    );    
-    if(data.reasonCode){
-        row.querySelector(".ac-reason").value=data.reasonCode;
-    }
-    else{
-        fillAllowanceReasons(row);
-    }
-    row.querySelector(".ac-mode").value =
-        data.mode ?? "amount";
-    row.querySelector(".ac-value").value =
-        data.value ?? 0;
-    row.querySelector(".remove-ac")
-        .addEventListener(
-            "click",
-            function () {
-                row.remove();
-            }
-        );
 }
 function collectInvoiceAllowances(){
     let data=[];
@@ -435,6 +327,123 @@ function collectInvoiceAllowances(){
     });
     return data;
 }
+function loadInvoice(id){
+    fetch(window.APP.baseUrl+"/api/invoices/view.php?mode=edit&id="+id)
+    .then(response=>response.json())
+    .then(result=>{
+        if(!result.success){
+            return;
+        }
+
+        const invoice=result.data;
+
+        document.getElementById("invoiceNumber").value=invoice.invoice_number;
+        document.getElementById("invoiceKind").value=invoice.invoice_kind;
+
+        if(invoice.invoice_kind==="standard"){
+            customerBox.style.display="block";
+            loadCustomers().then(()=>{
+                customerSelect.value=invoice.customer_id;
+            });
+        }
+
+        const tbody=document.getElementById("invoiceItems");
+        tbody.innerHTML="";
+        invoice.items.forEach(item=>{
+            addInvoiceRow(item);
+        });
+
+        const allowanceBody=document.getElementById("invoiceAllowanceBody");
+        allowanceBody.innerHTML="";
+
+        if(invoice.allowance_charges){
+            invoice.allowance_charges.forEach(row=>{
+                addInvoiceAllowanceRow({
+                    chargeIndicator:Number(row.charge_indicator)===1,
+                    reasonCode:row.reason_code,
+                    reason:row.reason,
+                    mode:Number(row.multiplier_factor)>0?"percent":"amount",
+                    value:Number(row.multiplier_factor)>0
+                        ? row.multiplier_factor
+                        : row.amount
+                });
+            });
+        }
+    });
+}
+function addInvoiceAllowanceRow(data = {}) {
+    const body = document.getElementById("invoiceAllowanceBody");
+
+    body.insertAdjacentHTML(
+        "beforeend",
+        `
+        <tr>
+            <td>
+                <select class="form-select ac-type">
+                    <option value="0">Allowance</option>
+                    <option value="1">Charge</option>
+                </select>
+            </td>
+            <td>
+                <select class="form-select ac-reason"></select>
+            </td>
+            <td>
+                <select class="form-select ac-mode">
+                    <option value="amount">Amount</option>
+                    <option value="percent">Percent</option>
+                </select>
+            </td>
+            <td>
+                <input
+                    type="number"
+                    class="form-control ac-value"
+                    step="0.01"
+                    value="0">
+            </td>
+            <td>
+                <button
+                    type="button"
+                    class="btn btn-danger btn-sm remove-ac">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        </tr>
+        `
+    );
+
+    const row = body.lastElementChild;
+
+    row.querySelector(".ac-type").value =
+        data.chargeIndicator ? "1" : "0";
+
+    fillAllowanceReasons(row);
+
+    if(data.reasonCode){
+        row.querySelector(".ac-reason").value=data.reasonCode;
+    }
+
+    row.querySelector(".ac-type")
+    .addEventListener(
+        "change",
+        function(){
+            fillAllowanceReasons(row);
+        }
+    );
+
+    row.querySelector(".ac-mode").value =
+        data.mode ?? "amount";
+
+    row.querySelector(".ac-value").value =
+        data.value ?? 0;
+
+    row.querySelector(".remove-ac")
+    .addEventListener(
+        "click",
+        function(){
+            row.remove();
+        }
+    );
+}
 function loadAllowanceReasons(){
     fetch(window.APP.baseUrl+"/api/settings/allowance_reasons.php")
     .then(response=>response.json())
@@ -447,11 +456,16 @@ function loadAllowanceReasons(){
 }
 function fillAllowanceReasons(row){
     const select=row.querySelector(".ac-reason");
-    const isCharge=row.querySelector(".ac-type").value==="1";
+
+    const isCharge=
+        row.querySelector(".ac-type").value==="1";
+
     const list=isCharge
         ? allowanceReasons.charges
         : allowanceReasons.allowances;
+
     select.innerHTML="";
+
     list.forEach(function(reason){
         select.innerHTML+=`
         <option value="${reason.code}">

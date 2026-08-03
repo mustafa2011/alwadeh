@@ -67,32 +67,19 @@ class InvoiceService
         $this->invoiceValidator->validateGenerationRequirements( $company, $getSettings);
         $type = $this->invoiceValidator->getInvoiceType($invoiceData);
         $chain = $this->invoiceChainService->next($company['id']);        
-        if ($type === 'standard') {
-            $invoiceData['customer'] = $this->customerRepository->findForInvoice(
-                $invoiceData['customerId']
-            );
-        } else {
-            $invoiceData['customer'] = [];
-        }
-        $invoiceData['items'] = $this->prepareItems($invoiceData['items'] ?? []);           
-        $invoice = $this->invoiceBuilder->prepare(
+        $invoiceData = $this->prepareInvoiceData(
             $type,
-            $this->companyService->buildSupplier(),
-            $getSettings['environment'] ?? null,
-            $chain,
             $invoiceData
-        );    
-        if (!empty($invoiceData['items'])) {
-            $totals = $this->invoiceCalculationService->calculate(
-                $invoiceData['items'],
-                $invoiceData['allowanceCharges'] ?? []
-            );
-            $invoice = $this->invoiceBuilder->build($invoice, $totals);
-        }        
-        $package = $this->invoiceXmlService->buildPackage(
-            $invoice,
-            $this->storageRepository->getInvoicesDirectory()
+        );           
+        $result = $this->buildInvoicePackage(
+            $type,
+            $invoiceData,
+            $chain,
+            $getSettings
         );
+        
+        $invoice = $result['invoice'];
+        $package = $result['package'];        
         $api = $this->invoiceChainService->api();
         $submitResult = null;
         if ($submit) {
@@ -129,11 +116,7 @@ class InvoiceService
                 $submitResult,
                 $invoiceData
             );
-        }    
-        $resultSaved = [
-            'invoice_kind' => $invoice['invoiceType']['invoice'] ?? null,
-            'customer' => $invoiceData['customerId'] ?? null
-        ];                  
+        }                     
         return [
             'success' => $submitResult['success'],
             'message' =>
@@ -170,10 +153,18 @@ class InvoiceService
     {
         $company = $this->storageRepository->loadCurrentCompany();
         foreach ($items as &$item) {
-            $itemData = $this->itemRepository->find(
-                (int)$company['id'],
-                (int)$item['itemId']
-            );
+            $itemId = (int)($item['itemId'] ?? $item['item_id'] ?? 0);
+            $itemData = $itemId > 0
+                ? $this->itemRepository->find((int)$company['id'], $itemId)
+                : null;
+            if (!$itemData) {
+                $itemData = [
+                    'id' => $item['id'] ?? 0,
+                    'item_name' => $item['itemName'] ?? '',
+                    'unit_id' => null,
+                    'tax_percent' => $item['tax_percent'] ?? 15
+                ];
+            }
             $this->invoiceValidator->validateItem($item);
             $item['id'] = $itemData['id'];
             $item['name'] = $itemData['item_name'];
@@ -216,49 +207,115 @@ class InvoiceService
     public function updateInvoice(int $invoiceId,array $invoiceData,bool $submit=false): array
     {
         $oldInvoice=$this->invoiceRepository->findById($invoiceId);
+        $invoiceData['invoiceNumber']=$oldInvoice['invoice_number'];
+        $invoiceData['invoiceType']=[
+            'invoiceKind'=>$oldInvoice['invoice_kind'],
+            'invoiceType'=>$oldInvoice['invoice_type']
+        ];
+        $invoiceData['customerId']=$oldInvoice['customer_id'];       
         $this->invoiceValidator->validateUpdateInvoice($oldInvoice);
         $company=$this->storageRepository->loadCurrentCompany();
         $settings=$this->companySettingsRepository->loadSettings();
         $type=$this->invoiceValidator->getInvoiceType($invoiceData);
-        if($type==='standard'){
-            $invoiceData['customer']=$this->customerRepository->findForInvoice($invoiceData['customerId']);
-        }else{
-            $invoiceData['customer']=[];
-        }
-        $invoiceData['items']=$this->prepareItems($invoiceData['items']??[]);
+        $invoiceData = $this->prepareInvoiceData(
+            $type,
+            $invoiceData
+        );
         $chain=[
             'icv'=>$oldInvoice['icv'],
             'previous_hash'=>$oldInvoice['previous_invoice_hash']
         ];
-        $invoice=$this->invoiceBuilder->prepare(
+        $result = $this->buildInvoicePackage(
             $type,
-            $this->companyService->buildSupplier(),
-            $settings['environment']??null,
+            $invoiceData,
             $chain,
-            $invoiceData
+            $settings,
+            [
+                'uuid' => $oldInvoice['invoice_uuid'],
+                'id' => $oldInvoice['invoice_number']
+            ]
         );
-        $invoice['uuid']=$oldInvoice['invoice_uuid'];
-        $invoice['id']=$oldInvoice['invoice_number'];
-        $totals = $this->invoiceCalculationService->calculate(
-            $invoiceData['items'],
-            $invoiceData['allowanceCharges'] ?? []
-        );        
-        $invoice=$this->invoiceBuilder->build($invoice,$totals);       
-        $package=$this->invoiceXmlService->buildPackage(
-            $invoice,
-            $this->storageRepository->getInvoicesDirectory()
-        );
+        $invoice = $result['invoice'];
+        $package = $result['package'];        
         $this->invoicePersistenceService->update(
             $invoiceId,
             $invoice,
-            $package,
-            $chain,
-            $invoiceData
+            $package
         );
         return [
             'success'=>true,
             'invoice_id'=>$invoiceId,
             'message'=>'Invoice updated successfully.'
         ];
-    }     
+    }   
+    private function normalizeAllowanceCharges(array $invoiceData): array
+    {
+        $invoiceData['allowanceCharges'] = array_values(array_filter(
+            $invoiceData['allowanceCharges'] ?? [],
+            function ($row) {
+                return !empty($row['value']) && (float)$row['value'] > 0;
+            }
+        ));
+        foreach ($invoiceData['allowanceCharges'] as &$row) {
+            if (empty($row['reason'])) {
+                $row['reason'] = !empty($row['chargeIndicator'])
+                    ? 'Charge'
+                    : 'Allowance';
+            }
+        }
+        return $invoiceData;
+    } 
+    private function prepareInvoiceData(
+        string $type,
+        array $invoiceData
+    ): array
+    {
+        if ($type === 'standard') {
+            $invoiceData['customer'] = $this->customerRepository->findForInvoice(
+                $invoiceData['customerId']
+            );
+        } else {
+            $invoiceData['customer'] = [];
+        }
+        $invoiceData['items'] = $this->prepareItems(
+            $invoiceData['items'] ?? []
+        );
+        return $this->normalizeAllowanceCharges($invoiceData);
+    }
+    private function buildInvoicePackage(
+        string $type,
+        array $invoiceData,
+        array $chain,
+        array $settings,
+        ?array $fixedHeader = null
+    ): array
+    {
+        $invoice = $this->invoiceBuilder->prepare(
+            $type,
+            $this->companyService->buildSupplier(),
+            $settings['environment'] ?? null,
+            $chain,
+            $invoiceData
+        );
+        if ($fixedHeader) {
+            $invoice['uuid'] = $fixedHeader['uuid'];
+            $invoice['id'] = $fixedHeader['id'];
+        }
+        $totals = $this->invoiceCalculationService->calculate(
+            $invoiceData['items'],
+            $invoiceData['allowanceCharges']
+        );
+        $invoice = $this->invoiceBuilder->build(
+            $invoice,
+            $totals
+        );
+        $package = $this->invoiceXmlService->buildPackage(
+            $invoice,
+            $this->storageRepository->getInvoicesDirectory()
+        );
+        return [
+            'invoice' => $invoice,
+            'package' => $package
+        ];
+    }             
 }

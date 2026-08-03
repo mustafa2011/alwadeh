@@ -25,7 +25,6 @@ try {
     $invoice['items'] = $invRepo->findItems($id);
     $invoice['totals'] = $invRepo->findTotals($id);
     $invoice['tax_totals'] = $invRepo->findTaxTotals($id);
-    $invoice['allowance_charges'] = $invRepo->findAllowances($id);    
     $invoice['allowance_charges'] = $invRepo->findAllowanceCharges($id);
     $invoice['supplier'] = $invSnapshotRepo->findSupplier($id);
     $invoice['customer'] = $invSnapshotRepo->findCustomer($id); 

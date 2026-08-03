@@ -30,18 +30,16 @@ class InvoiceValidator
             throw new Exception('Production secret not found.');
         }
     }
-
     public function getInvoiceType(array $invoiceData): string
     {
         if (
             empty($invoiceData['invoiceType']) ||
-            empty($invoiceData['invoiceType']['invoice'])
+            empty($invoiceData['invoiceType']['invoiceKind'])
         ) {
-            throw new Exception('Invoice type is required.');
+            throw new Exception('Invoice kind is required.');
         }
-
-        return strtolower($invoiceData['invoiceType']['invoice']);
-    }
+        return strtolower($invoiceData['invoiceType']['invoiceKind']);
+    }    
     public function validateItem(?array $item): void
     {
         if (!$item) {

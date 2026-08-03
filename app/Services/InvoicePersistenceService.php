@@ -116,26 +116,15 @@ class InvoicePersistenceService
         int $invoiceId,
         array $invoice,
         array $package,
-        array $chain,
-        array $invoiceData
     ): void {
         $this->db->beginTransaction();
         try {
             $this->invoiceRepository->update(
                 $invoiceId,
                 [
-                    'customer_id' => $invoice['invoiceType']['invoice'] === 'standard'
-                        ? ($invoiceData['customerId'] ?? null)
-                        : null,
-                    'invoice_kind' => $invoice['invoiceType']['invoice'] ?? 'simplified',
-                    'issue_date' => $invoice['issueDate'],
-                    'issue_time' => $invoice['issueTime'],
-                    'currency_code' => $invoice['currencyCode'] ?? 'SAR',
-                    'document_currency_code' => $invoice['currencyCode'] ?? 'SAR',
-                    'tax_currency_code' => $invoice['taxCurrencyCode'] ?? 'SAR',
                     'invoice_hash' => $package['hash'],
                     'xml_file_path' => $package['xml_path'],
-                    'signed_xml_path' => $package['signed_xml_path'],
+                    'signed_xml_file_path' => $package['signed_xml_path'],
                     'qr_code' => $package['qr_code'] ?? null
                 ]
             );
@@ -143,7 +132,6 @@ class InvoicePersistenceService
             $this->invoiceRepository->deleteAllowancesByInvoiceId($invoiceId);
             $this->invoiceTotalsRepository->deleteByInvoiceId($invoiceId);
             $this->invoiceTaxTotalsRepository->deleteByInvoiceId($invoiceId);
-            $this->invoiceSnapshotRepository->deleteByInvoiceId($invoiceId);            
             $this->invoiceLineRepository->create(
                 $invoiceId,
                 $invoice['invoiceLines']
@@ -161,12 +149,7 @@ class InvoicePersistenceService
                     $invoiceId,
                     $invoice['allowanceCharges']
                 );
-            }            
-            $this->invoiceSnapshotRepository->create(
-                $invoiceId,
-                $invoice,
-                $invoiceData
-            );            
+            }
             $this->db->commit();
         } catch (\Throwable $e) {
             $this->db->rollBack();

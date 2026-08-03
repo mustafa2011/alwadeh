@@ -90,35 +90,19 @@ class InvoiceRepository
     {
         $sql = "
         UPDATE invoices SET
-            customer_id=:customer_id,
-            invoice_kind=:invoice_kind,
-            issue_date=:issue_date,
-            issue_time=:issue_time,
-            supply_date=:supply_date,
-            currency_code=:currency_code,
-            document_currency_code=:document_currency_code,
-            tax_currency_code=:tax_currency_code,
             invoice_hash=:invoice_hash,
             xml_file_path=:xml_file_path,
             signed_xml_file_path=:signed_xml_file_path,
             qr_code=:qr_code
         WHERE id=:id
         ";
-        $stmt = $this->db->prepare($sql);
+        $stmt=$this->db->prepare($sql);
         $stmt->execute([
-            'id' => $id,
-            'customer_id' => $invoice['customer_id'] ?? null,
-            'invoice_kind' => $invoice['invoice_kind'],
-            'issue_date' => $invoice['issue_date'],
-            'issue_time' => $invoice['issue_time'],
-            'supply_date' => $invoice['issue_date'],
-            'currency_code' => $invoice['currency_code'],
-            'document_currency_code' => $invoice['document_currency_code'],
-            'tax_currency_code' => $invoice['tax_currency_code'],
-            'invoice_hash' => $invoice['invoice_hash'],
-            'xml_file_path' => $invoice['xml_file_path'],
-            'signed_xml_file_path' => $invoice['signed_xml_path'],
-            'qr_code' => $invoice['qr_code']
+            'id'=>$id,
+            'invoice_hash'=>$invoice['invoice_hash'],
+            'xml_file_path'=>$invoice['xml_file_path'],
+            'signed_xml_file_path'=>$invoice['signed_xml_file_path'],
+            'qr_code'=>$invoice['qr_code'] ?? null
         ]);
     }
     public function findLastIssuedInvoice(int $companyId): ?array
@@ -369,33 +353,12 @@ class InvoiceRepository
         $stmt = $this->db->prepare("
             SELECT *
             FROM invoice_allowance_charges
-            WHERE invoice_id = :invoice_id
+            WHERE invoice_id = :invoice_id AND amount > 0 
             ORDER BY id
         ");
         $stmt->execute([
             'invoice_id' => $invoiceId
         ]);
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
-    }  
-    public function findAllowances(int $invoiceId): array
-    {
-        $stmt = $this->db->prepare("
-            SELECT
-                charge_indicator,
-                reason_code,
-                reason,
-                amount,
-                base_amount,
-                multiplier_factor,
-                currency_code,
-                tax_category_id,
-                tax_percent,
-                tax_scheme_id
-            FROM invoice_allowance_charges
-            WHERE invoice_id = ?
-            ORDER BY id
-        ");
-        $stmt->execute([$invoiceId]);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }              
 }
