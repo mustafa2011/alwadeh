@@ -20,10 +20,25 @@ try {
             $invoiceData['submit'] ?? true
         );
     } else {
-        $result = $service->issueInvoice(
-            $invoiceData,
-            $invoiceData['submit'] ?? true
+        $documentType = strtolower(
+            $invoiceData['invoiceType']['invoiceType'] ?? 'invoice'
         );
+        if (
+            in_array(
+                $documentType,
+                ['credit','debit'],
+                true
+            )
+        ) {
+            $result = $service->createNote(
+                $invoiceData
+            );
+        } else {
+            $result = $service->issueInvoice(
+                $invoiceData,
+                $invoiceData['submit'] ?? true
+            );
+        }
     }
     echo json_encode([
         'success' => $result['success'],

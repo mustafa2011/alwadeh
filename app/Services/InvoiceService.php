@@ -15,6 +15,7 @@ use App\Services\InvoiceSubmissionService;
 use App\Services\InvoiceXmlService;
 use App\Repositories\CompanySettingsRepository;
 use App\Repositories\ItemRepository;
+use App\Services\CreditNoteService;
 use App\Core\Database;
 use PDO;
 class InvoiceService
@@ -35,6 +36,8 @@ class InvoiceService
     private InvoiceXmlService $invoiceXmlService;
     private CompanySettingsRepository $companySettingsRepository;
     private ItemRepository $itemRepository;
+    private CreditNoteService $creditNoteService;
+
     public function __construct() {
         $this->db = Database::getConnection();
         $this->invoiceValidator = new InvoiceValidator();
@@ -53,6 +56,7 @@ class InvoiceService
         $this->companySettingsRepository = new CompanySettingsRepository();
         $this->customerRepository = new CustomerRepository();
         $this->itemRepository = new ItemRepository();
+        $this->creditNoteService=new CreditNoteService();
     }
     public function createInvoice(array $invoiceData): array
     {
@@ -65,20 +69,21 @@ class InvoiceService
         $getSettings = $this->companySettingsRepository->loadSettings();
         $company = $this->storageRepository->loadCurrentCompany();
         $this->invoiceValidator->validateGenerationRequirements( $company, $getSettings);
-        $type = $this->invoiceValidator->getInvoiceType($invoiceData);
+        $type = $this->invoiceValidator->getInvoiceType($invoiceData);       
         $chain = $this->invoiceChainService->next($company['id']);        
         $invoiceData = $this->prepareInvoiceData(
             $type,
             $invoiceData
-        );           
+        );       
         $result = $this->buildInvoicePackage(
             $type,
             $invoiceData,
             $chain,
             $getSettings
         );
-        
-        $invoice = $result['invoice'];
+
+                        
+        $invoice = $result['invoice'];       
         $package = $result['package'];        
         $api = $this->invoiceChainService->api();
         $submitResult = null;
@@ -207,6 +212,8 @@ class InvoiceService
     public function updateInvoice(int $invoiceId,array $invoiceData,bool $submit=false): array
     {
         $oldInvoice=$this->invoiceRepository->findById($invoiceId);
+        $invoiceData['originalInvoiceId'] = $oldInvoice['original_invoice_id'] ?? null;
+        $invoiceData['billingRef'] = $oldInvoice['billing_reference'] ?? null;
         $invoiceData['invoiceNumber']=$oldInvoice['invoice_number'];
         $invoiceData['invoiceType']=[
             'invoiceKind'=>$oldInvoice['invoice_kind'],
@@ -281,41 +288,88 @@ class InvoiceService
             $invoiceData['items'] ?? []
         );
         return $this->normalizeAllowanceCharges($invoiceData);
-    }
-    private function buildInvoicePackage(
-        string $type,
-        array $invoiceData,
-        array $chain,
-        array $settings,
-        ?array $fixedHeader = null
-    ): array
+    }       
+    private function buildInvoicePackage(string $type,array $invoiceData,array $chain,array $settings,?array $fixedHeader=null): array
     {
-        $invoice = $this->invoiceBuilder->prepare(
+        $invoice=$this->invoiceBuilder->prepare(
             $type,
             $this->companyService->buildSupplier(),
-            $settings['environment'] ?? null,
+            $settings['environment']??null,
             $chain,
             $invoiceData
         );
-        if ($fixedHeader) {
-            $invoice['uuid'] = $fixedHeader['uuid'];
-            $invoice['id'] = $fixedHeader['id'];
+        if(!empty($invoiceData['originalInvoiceId'])){
+            $originalLines=$this->invoiceRepository->findItems(
+                (int)$invoiceData['originalInvoiceId']
+            );
+            $originalCharges=$this->invoiceRepository->findAllowanceCharges(
+                (int)$invoiceData['originalInvoiceId']
+            );
+            $invoiceData=$this->creditNoteService->adjustCreditNoteAllowances(
+                $invoiceData,
+                $originalLines,
+                $originalCharges
+            );
         }
-        $totals = $this->invoiceCalculationService->calculate(
+        if($fixedHeader){
+            $invoice['uuid']=$fixedHeader['uuid'];
+            $invoice['id']=$fixedHeader['id'];
+        }
+        $totals=$this->invoiceCalculationService->calculate(
             $invoiceData['items'],
             $invoiceData['allowanceCharges']
         );
-        $invoice = $this->invoiceBuilder->build(
+        if(!empty($invoiceData['originalInvoiceId'])){
+            $originalLines=$this->invoiceRepository->findItems(
+                (int)$invoiceData['originalInvoiceId']
+            );
+            $previousCredits=$this->invoiceRepository->findPreviousCredits(
+                (int)$invoiceData['originalInvoiceId']
+            );
+            $this->invoiceValidator->validateCreditDebitNote(
+                $invoiceData,
+                $originalLines,
+                $previousCredits
+            );            
+        }
+        $invoice=$this->invoiceBuilder->build(
             $invoice,
             $totals
         );
-        $package = $this->invoiceXmlService->buildPackage(
+        $package=$this->invoiceXmlService->buildPackage(
             $invoice,
             $this->storageRepository->getInvoicesDirectory()
         );
         return [
-            'invoice' => $invoice,
-            'package' => $package
+            'invoice'=>$invoice,
+            'package'=>$package
         ];
-    }             
+    }    
+    public function createNote(array $noteData): array
+    {
+        $originalInvoice = null;
+        if (!empty($noteData['originalInvoiceId'])) {
+            $originalInvoice = $this->invoiceRepository->findById(
+                (int)$noteData['originalInvoiceId']
+            );
+        }
+    
+        $invoiceType = strtolower(
+            $noteData['invoiceType']['invoiceType'] ?? 'invoice'
+        );
+    
+        $this->invoiceValidator->validateOriginalInvoice(
+            $originalInvoice,
+            $invoiceType
+        );
+    
+        if ($originalInvoice) {
+            $noteData['billingRef'] = $originalInvoice['invoice_number'];
+            $noteData['originalInvoiceId'] = $originalInvoice['id'];
+        }
+        return $this->issueInvoice(
+            $noteData,
+            $noteData['submit'] ?? true
+        );
+    }               
 }

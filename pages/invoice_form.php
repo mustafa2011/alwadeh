@@ -19,9 +19,7 @@ $invoiceId = $_GET['id'] ?? null;
         <form id="invoiceCreateForm">
             <div class="row mb-3">
                 <div class="col-md-6">
-                    <label class="form-label">
-                        Invoice Type
-                    </label>
+                    <label class="form-label">Invoice Type</label>
                     <select id="invoiceKind"
                             class="form-select">
                         <option value="simplified">
@@ -33,9 +31,7 @@ $invoiceId = $_GET['id'] ?? null;
                     </select>
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label">
-                        Invoice Number
-                    </label>
+                    <label class="form-label">Invoice Number</label>
                     <input type="text"
                         id="invoiceNumber"
                         class="form-control"
@@ -52,64 +48,82 @@ $invoiceId = $_GET['id'] ?? null;
                         </div>
                     </div>
                 </div>
-            <hr>
-            <h5>
-                Invoice Items
-            </h5>
-            <div class="table-responsive">
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Document Type</label>
+                        <select id="invoiceType" class="form-select">
+                            <option value="invoice">Invoice</option>
+                            <option value="credit">Credit Note</option>
+                            <option value="debit">Debit Note</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6"
+                            id="originalInvoiceSection"
+                            style="display:none;">
+                            <label class="form-label">Original Invoice</label>
+                            <select id="originalInvoiceSelect"
+                                    class="form-select">
+                                <option value="">Select Original Invoice</option>
+                            </select>
+                        </div>
+                    </div>               
+                
+                <hr>
+                <h5>Invoice Items</h5>
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                        <tr>
+                        <th>Item</th>
+                        <th>Qty</th>
+                        <th>Price</th>
+                        <th>VAT %</th>
+                        <th>Actions</th>
+                    </tr>
+                        </thead>
+                        <tbody id="invoiceItems">
+                        </tbody>
+                    </table>
+                
+                </div>
+                <button type="button"
+                        id="addItem"
+                        class="btn btn-outline-secondary mb-3">
+                    <i class="bi bi-plus"></i>
+                    Add Item
+                </button>
+                <hr>
+                <h5>Invoice Allowances / Charges</h5>
                 <table class="table table-bordered">
                     <thead>
-                    <tr>
-                    <th>Item</th>
-                    <th>Qty</th>
-                    <th>Price</th>
-                    <th>VAT %</th>
-                    <th>Actions</th>
-                </tr>
+                        <tr>
+                            <th>Type</th>
+                            <th>Reason</th>
+                            <th>Mode</th>
+                            <th>Value</th>
+                            <th>Action</th>
+                        </tr>
                     </thead>
-                    <tbody id="invoiceItems">
-                    </tbody>
+                    <tbody id="invoiceAllowanceBody"></tbody>
                 </table>
-              
-            </div>
-            <button type="button"
-                    id="addItem"
-                    class="btn btn-outline-secondary mb-3">
-                <i class="bi bi-plus"></i>
-                Add Item
-            </button>
-            <hr>
-            <h5>Invoice Allowances / Charges</h5>
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Type</th>
-                        <th>Reason</th>
-                        <th>Mode</th>
-                        <th>Value</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody id="invoiceAllowanceBody">
-                </tbody>
-            </table>
-            <button
-                type="button"
-                id="addInvoiceAllowance"
-                class="btn btn-outline-primary mb-3">
-                <i class="bi bi-plus"></i>
-                Add Allowance / Charge
-            </button>              
-            <div class="d-flex justify-content-between">
-                <a href="?page=invoices" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left"></i>
-                    Back
-                </a>
-                <button type="submit" id="saveDraft" class="btn btn-secondary">
-                    <i class="bi bi-save"></i>
-                    Save for Submission
-                </button>
-            </div>
+                <button
+                    type="button"
+                    id="addInvoiceAllowance"
+                    class="btn btn-outline-primary mb-3">
+                    <i class="bi bi-plus"></i>
+                    Add Allowance / Charge
+                </button>              
+                <div class="d-flex justify-content-between">
+                    <a href="?page=invoices" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i>
+                        Back
+                    </a>
+                    <button type="submit" id="saveDraft" class="btn btn-secondary">
+                        <i class="bi bi-save"></i>
+                        Save for Submission
+                    </button>
+                </div>
 
         </form>
     </div>

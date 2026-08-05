@@ -6,14 +6,34 @@ let allowanceReasons = {
 };
 let customerBox;
 let invoiceKind;
+let invoiceType;
+let originalInvoiceSelect;
+let originalInvoiceSection;
+let invoiceTypeSelect;
 document.addEventListener(
     "DOMContentLoaded",
     function(){
         const form = document.getElementById("invoiceCreateForm");
         const addItem = document.getElementById("addItem");
         invoiceKind=document.getElementById("invoiceKind");
+        invoiceTypeSelect=document.getElementById("invoiceType");
+        originalInvoiceSection=document.getElementById("originalInvoiceSection");
+        originalInvoiceSelect=document.getElementById("originalInvoiceSelect");
+
+        invoiceTypeSelect.addEventListener("change",function(){
+            if(this.value==="credit"||this.value==="debit"){
+                originalInvoiceSection.style.display="block";
+                loadOriginalInvoices();
+            }else{
+                originalInvoiceSection.style.display="none";
+                originalInvoiceSelect.value="";
+            }
+        });
+        invoiceType=document.getElementById("invoiceType");
         customerBox=document.getElementById("customerSection");
         customerSelect=document.getElementById("customerSelect");
+        originalInvoiceSelect=document.getElementById("originalInvoiceSelect");
+        originalInvoiceSection=document.getElementById("originalInvoiceSection");        
         document
         .getElementById("addInvoiceAllowance")
         .addEventListener(
@@ -32,6 +52,7 @@ document.addEventListener(
             }
         }
         invoiceKind.addEventListener("change",toggleCustomer);
+        invoiceType.addEventListener("change", toggleOriginalInvoice);
         toggleCustomer();
         loadItems();
         loadAllowanceReasons();
@@ -136,31 +157,36 @@ document.addEventListener(
                         });
                     }
                 );
-                let invoiceType =
-                    document
-                    .getElementById(
-                        "invoiceKind"
-                    )
-                    .value;
-                    let invoiceData = {
-                        invoiceNumber:document.getElementById("invoiceNumber").value,
-                        invoiceType:{
-                            invoiceKind:invoiceType,
-                            invoiceType:"invoice"
-                        },
-                        customerId:document.getElementById("customerSelect").value||null,
-                        items:items
-                    };
-                    invoiceData.allowanceCharges = collectInvoiceAllowances();
-                    if (invoiceType === "standard" && !invoiceData.customerId) {
-                        showError("Please select customer for standard invoice.");                        
-                        return;
-                    }
-                    createInvoice(
-                        invoiceData,
-                        submitInvoice
-                    );
-                    submitInvoice = true;                    
+                let invoiceType = document.getElementById("invoiceKind").value;
+                let originalInvoiceId = document.getElementById("originalInvoiceSelect")?.value || null;
+                let invoiceData = {
+                    invoiceNumber:document.getElementById("invoiceNumber").value,
+                    invoiceType:{
+                        invoiceKind:invoiceKind.value,
+                        invoiceType:invoiceType.value
+                    },
+                    customerId:document.getElementById("customerSelect").value||null,
+                    originalInvoiceId:
+                        document.getElementById("originalInvoiceSelect")?.value || null,
+                    items:items
+                };
+                invoiceData.allowanceCharges = collectInvoiceAllowances();
+                if (invoiceType === "standard" && !invoiceData.customerId) {
+                    showError("Please select customer for standard invoice.");                        
+                    return;
+                }
+                if (
+                    (invoiceType.value==="credit" || invoiceType.value==="debit") &&
+                    !invoiceData.originalInvoiceId
+                ) {
+                    showError("Please select original invoice.");
+                    return;
+                }                
+                createInvoice(
+                    invoiceData,
+                    submitInvoice
+                );
+                submitInvoice = true;                    
             }
         );
     }
@@ -471,5 +497,48 @@ function fillAllowanceReasons(row){
         <option value="${reason.code}">
             ${reason.name_en}
         </option>`;
+    });
+}
+function toggleOriginalInvoice(){
+    const type=document.getElementById("invoiceType")?.value;
+    const kind=invoiceKind.value;
+    if(kind==="standard" && (type==="credit" || type==="debit")){
+        originalInvoiceSection.style.display="block";
+        loadOriginalInvoices();
+    }else{
+        originalInvoiceSection.style.display="none";
+        originalInvoiceSelect.value="";
+    }
+}
+function toggleOriginalInvoice(){
+    const type=invoiceTypeSelect.value;
+    if(type==="credit"||type==="debit"){
+        originalInvoiceSection.style.display="block";
+        loadOriginalInvoices();
+    }else{
+        originalInvoiceSection.style.display="none";
+        originalInvoiceSelect.value="";
+    }
+}
+invoiceTypeSelect.addEventListener(
+    "change",
+    toggleOriginalInvoice
+);
+toggleOriginalInvoice();
+
+function loadOriginalInvoices(){
+    fetch(window.APP.baseUrl+"/api/invoices/cleared_list.php")
+    .then(response=>response.json())
+    .then(result=>{
+        originalInvoiceSelect.innerHTML='<option value="">Select Original Invoice</option>';
+        if(!result.success){
+            return;
+        }
+        result.data.forEach(invoice=>{
+            originalInvoiceSelect.innerHTML+=`
+            <option value="${invoice.id}">
+                ${invoice.invoice_number}
+            </option>`;
+        });
     });
 }

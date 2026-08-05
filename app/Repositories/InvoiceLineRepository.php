@@ -135,5 +135,34 @@ class InvoiceLineRepository
         $stmt->execute([
             'invoice_id'=>$invoiceId
         ]);
-    }    
+    } 
+    public function getRemainingQuantities(int $invoiceId): array
+    {
+        $stmt=$this->db->prepare("
+            SELECT
+                l.item_id,
+                l.item_name,
+                l.quantity AS original_quantity,
+                COALESCE(SUM(nl.quantity),0) AS credited_quantity,
+                (
+                    l.quantity - COALESCE(SUM(nl.quantity),0)
+                ) AS remaining_quantity
+            FROM invoice_lines l
+            LEFT JOIN invoices n
+                ON n.original_invoice_id=l.invoice_id
+                AND n.invoice_type='credit_note'
+            LEFT JOIN invoice_lines nl
+                ON nl.invoice_id=n.id
+                AND nl.item_id=l.item_id
+            WHERE l.invoice_id=?
+            GROUP BY
+                l.id,
+                l.item_id,
+                l.item_name,
+                l.quantity
+            ORDER BY l.id
+        ");
+        $stmt->execute([$invoiceId]);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }       
 }

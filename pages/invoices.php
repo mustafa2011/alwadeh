@@ -11,11 +11,19 @@
 </div>
 <div class="row mb-3">
     <div class="col text-end">
-        <a href="?page=invoice_create"
-           class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i>
-            Create Invoice
-        </a>
+        <div class="d-flex justify-content-end gap-2">
+            <a href="?page=note_create"
+            class="btn btn-outline-warning">
+                <i class="bi bi-receipt"></i>
+                Credit / Debit Note
+            </a>
+
+            <a href="?page=invoice_create"
+            class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i>
+                Create Invoice
+            </a>
+        </div>
     </div>
 </div>
 <div class="card shadow-sm">

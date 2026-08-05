@@ -26,6 +26,5 @@
     };
 </script>
 
-<script src="<?= BASE_URL ?>/assets/js/invoice_view.js"></script>
-
+<script src="<?= BASE_URL ?>/assets/js/invoice_view.js?v=2"></script>
 

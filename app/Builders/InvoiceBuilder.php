@@ -53,6 +53,19 @@ class InvoiceBuilder
             $invoiceData
         );
         if (
+            in_array(
+                $invoice['invoiceType']['type'] ?? '',
+                ['credit', 'debit'],
+                true
+            )
+            &&
+            empty($invoice['billingReferences'])
+        ) {
+            throw new \Exception(
+                'Billing reference is required for credit or debit invoice.'
+            );
+        }        
+        if (
             !isset($invoice['additionalDocuments']) ||
             !is_array($invoice['additionalDocuments'])
         ) {
@@ -91,12 +104,13 @@ class InvoiceBuilder
                 ]
             ];
         }
-        if (
-            !empty($invoiceData['billingRef'])
-        ) {
+        $invoice['billingRef'] = $invoiceData['billingRef'] ?? null;
+        $invoice['originalInvoiceId'] = $invoiceData['originalInvoiceId'] ?? null;
+        
+        if (!empty($invoice['billingRef'])) {
             $invoice['billingReferences'] = [
                 [
-                    'id' => $invoiceData['billingRef']
+                    'id' => $invoice['billingRef']
                 ]
             ];
         }

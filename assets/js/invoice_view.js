@@ -43,10 +43,18 @@ function renderInvoice(invoice) {
                 </div>    
                 <div class="col-md-4 mb-3">    
                     <label class="text-muted small">
-                        Invoice Type
+                        Invoice Kind
                     </label>    
                     <div class="fw-semibold text-capitalize">
                         ${invoice.invoice_kind}
+                    </div>    
+                </div>    
+                <div class="col-md-4 mb-3">    
+                    <label class="text-muted small">
+                        Invoice Type
+                    </label>    
+                    <div class="fw-semibold text-capitalize">
+                        ${invoice.invoice_type}
                     </div>    
                 </div>    
                 <div class="col-md-3 mb-3">    
@@ -245,13 +253,14 @@ function renderInvoice(invoice) {
         `;
         invoice.allowance_charges.forEach(row=>{
             const isCharge = Number(row.charge_indicator) === 1;
+            const isPercent = Number(row.multiplier_factor) > 0;
             html+=`
                 <tr>
                     <td>${isCharge ? 'Charge' : 'Allowance'}</td>
                     <td>${row.reason ?? '-'}</td>
-                    <td>${row.multiplier_factor ? 'Percent' : 'Amount'}</td>
+                    <td>${isPercent ? 'Percent' : 'Amount'}</td>
                     <td class="text-end">
-                        ${row.multiplier_factor ? Number(row.multiplier_factor).toFixed(2)+'%' : '-'}
+                        ${isPercent ? Number(row.multiplier_factor).toFixed(2)+'%' : '-'}
                     </td>
                     <td class="text-end ${isCharge ? 'text-success':'text-danger'}">
                         ${isCharge ? '+' : '-'}${Number(row.amount ?? 0).toFixed(2)}

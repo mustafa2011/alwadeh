@@ -265,13 +265,46 @@ class CompanyStorageRepository
             } catch (Throwable $e) {
                 throw new Exception("ITEM CATEGORIES: ".$e->getMessage());
             }
-
+            try {
+                $this->createAllowanceReasonCodes($companyId);
+            } catch (Throwable $e) {
+                throw new Exception(("ALLOWANCE REASON CODES: " .$e->getMessage()));
+            }
+            try {
+                $this->createChargeReasonCodes($companyId);
+            } catch (Throwable $e) {
+                throw new Exception(("CHARGE REASON CODES: " .$e->getMessage()));
+            }
             $pdo->commit();
             return true;
         } catch (Throwable $e) {
             $pdo->rollBack();
             throw $e;
         }
+    }
+    private function createAllowanceReasonCodes(int $companyId): void
+    {
+        $stmt = Database::getConnection()->prepare("
+            INSERT INTO company_allowance_reason_codes
+            (company_id, code, name_en, name_ar, is_active)
+            VALUES
+            (?, '95', 'Discount', 'خصم', 1),
+            (?, '100', 'Special rebate', 'خصم خاص', 1),
+            (?, '102', 'Promotional discount', 'خصم ترويجي', 1)            
+        ");
+        $stmt->execute([$companyId, $companyId, $companyId]);        
+    }
+    private function createChargeReasonCodes(int $companyId): void
+    {
+        $stmt = Database::getConnection()->prepare("
+            INSERT INTO company_charge_reason_codes
+            (company_id, code, name_en, name_ar, is_active)
+            VALUES
+            (?, 'AA', 'Advertising', 'دعاية وإعلان', 1),
+            (?, 'FC', 'Freight charge', 'رسوم شحن', 1),
+            (?, 'FI', 'Financial charge', 'رسوم مالية', 1)            
+        ");
+        $stmt->execute([$companyId, $companyId, $companyId]);        
     }
     private function createItemCategories(int $companyId): void
     {

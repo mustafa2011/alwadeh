@@ -51,7 +51,8 @@ class InvoicePersistenceService
                 $status = 'cleared';
             } else {
                 $status = 'rejected';
-            }          
+            }  
+                    
             $invoiceId = $this->invoiceRepository->create([
                 'company_id' => $company['id'],
                 'customer_id' => $invoice['invoiceType']['invoice'] === 'standard'
@@ -59,8 +60,14 @@ class InvoicePersistenceService
                     : null,
                 'invoice_number' => $invoice['id'],
                 'invoice_uuid' => $package['uuid'],
-                'invoice_type' => $invoice['invoiceType']['type'] ?? 'invoice',
-                'invoice_kind' => $invoice['invoiceType']['invoice'] ?? 'simplified',
+                'invoice_type' => match($invoiceData['invoiceType']['invoiceType'] ?? 'invoice'){
+                    'credit' => 'credit_note',
+                    'debit' => 'debit_note',
+                    default => 'invoice'
+                },                
+                'invoice_kind' => $invoiceData['invoiceType']['invoiceKind'] ?? 'simplified',                
+                'billing_reference' => $invoice['billingRef'] ?? null,
+                'original_invoice_id' => $invoice['originalInvoiceId'] ?? null,                
                 'issue_date' => $invoice['issueDate'],
                 'supply_date' => $invoice['issueDate'],
                 'issue_time' => $invoice['issueTime'],
@@ -85,7 +92,8 @@ class InvoicePersistenceService
             $this->invoiceLineRepository->create(
                 $invoiceId,
                 $invoice['invoiceLines']
-            );            
+            );
+                          
             $this->invoiceTotalsRepository->create(
                 $invoiceId,
                 $invoice['legalMonetaryTotal']
